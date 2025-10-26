@@ -13,8 +13,7 @@ AtomicQMS is a containerized, self-hosted Quality Management System designed for
 docker compose up -d
 
 # Create admin user (first run only)
-docker exec -it atomicqms gitea admin user create \
-  --config /data/gitea/conf/app.ini \
+docker exec -u git atomicqms gitea admin user create \
   --username admin \
   --password 'YourSecurePassword' \
   --email admin@example.com \
@@ -36,6 +35,7 @@ Every AtomicQMS runs as a micro-deployed container that operates independently o
 - **Markdown-First**: Single-source documentation format for consistency
 - **Modular Deployment**: Standalone instances or federated fleets
 - **Browser-Based**: No desktop software required
+- **GitHub OAuth**: Single Sign-On authentication with GitHub accounts
 
 ## AI Integration
 
@@ -52,11 +52,113 @@ Early-stage biotech, academic labs, and healthcare startups that need regulatory
 * Position AtomicQMS as the foundation for **compliance-on-demand infrastructure** in translational research and technical operations
 * Explore integrations with lightweight LIMS and ELN tools for full digital lab coverage
 
+---
+
+## GitHub OAuth Authentication
+
+AtomicQMS supports GitHub OAuth for Single Sign-On authentication. Users can sign in with their GitHub accounts instead of creating local credentials.
+
+### Features
+
+- Single Sign-On with GitHub accounts
+- Automatic user registration on first login
+- Profile sync (username, email, avatar from GitHub)
+- Minimal OAuth scopes (read:user, user:email)
+- Secure credential management
+
+### Initial Setup
+
+**Prerequisites:**
+- Docker and Docker Compose installed
+- GitHub account with OAuth App creation permissions
+
+**Step 1: Create GitHub OAuth Application**
+
+1. Go to https://github.com/settings/developers
+2. Click **"New OAuth App"**
+3. Configure:
+   - **Application name**: `AtomicQMS`
+   - **Homepage URL**: `http://localhost:3001`
+   - **Authorization callback URL**: `http://localhost:3001/user/oauth2/github/callback`
+4. Click **"Register application"**
+5. Generate a new client secret and save both Client ID and Client Secret
+
+**Step 2: Configure OAuth Credentials**
+
+```bash
+# Copy the template
+cp .env.example .env
+
+# Edit with your GitHub OAuth App credentials
+nano .env
+```
+
+Replace the placeholder values:
+```bash
+GITHUB_CLIENT_ID=Iv1.YOUR_ACTUAL_CLIENT_ID
+GITHUB_CLIENT_SECRET=YOUR_ACTUAL_CLIENT_SECRET
+```
+
+**Step 3: Start Container**
+
+```bash
+docker compose up -d
+```
+
+**Step 4: Configure OAuth in Database**
+
+⚠️ **CRITICAL STEP** - Required for GitHub login to appear!
+
+```bash
+./setup-github-oauth.sh
+```
+
+This script:
+- Reads credentials from `.env` file
+- Checks if GitHub OAuth source exists
+- Creates or updates OAuth configuration
+- Restarts the container
+
+**Step 5: Test Login**
+
+1. Open http://localhost:3001/user/login
+2. Click **"Sign in with GitHub"**
+3. Authorize the application
+4. You'll be logged in!
+
+### Understanding the Two-Part Setup
+
+OAuth configuration requires two parts:
+
+1. **OAuth Capability** (pre-configured in `app.ini`): Enables OAuth support
+2. **OAuth Source** (you configure): Stores your GitHub app credentials in database
+
+The database configuration is not in Git (contains secrets), so each deployment must configure it via the setup script.
+
+### Troubleshooting
+
+**No "Sign in with GitHub" button:**
+- Ensure you ran `./setup-github-oauth.sh`
+- Check script output for errors
+- Restart container: `docker compose restart`
+
+**"incorrect_client_credentials" error:**
+- Verify Client ID and Secret match GitHub OAuth App
+- Update `.env` and re-run setup script
+
+**"Redirect URI mismatch" error:**
+- Callback URL must be exactly: `http://localhost:3001/user/oauth2/github/callback`
+
+For complete OAuth setup documentation and advanced configuration, see `CLAUDE.md`.
+
+---
+
 ## Technical Stack
 
 - **Platform**: Docker Compose
 - **Git Service**: Gitea (rebranded as AtomicQMS)
 - **Database**: SQLite3
+- **Authentication**: GitHub OAuth + local accounts
 - **Configuration**: File-based (app.ini)
 - **Data Persistence**: Local volumes with Git LFS support
 
@@ -66,9 +168,31 @@ Early-stage biotech, academic labs, and healthcare startups that need regulatory
 - **SSH Git Access**: ssh://git@localhost:222
 - **Container Name**: atomicqms
 
+## Docker Management
+
+```bash
+# Start services
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# View logs
+docker logs atomicqms
+docker logs atomicqms -f  # follow mode
+
+# Restart container
+docker compose restart
+
+# Rebuild and restart
+docker compose up -d --build
+```
+
 ## Documentation
 
-For complete documentation, see the [docs](./docs) folder or visit the full documentation site.
+For complete documentation, see:
+- `CLAUDE.md` - Technical documentation and configuration details
+- `docs/` folder - Additional documentation and guides
 
 ## License
 

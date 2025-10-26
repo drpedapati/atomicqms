@@ -14,6 +14,12 @@ gitea/gitea/conf/*
 .env.local
 .env.*.local
 
+# OAuth secrets (never commit these!)
+*oauth*.env
+github-credentials.txt
+secrets/
+.secrets
+
 # OS files
 .DS_Store
 Thumbs.db
