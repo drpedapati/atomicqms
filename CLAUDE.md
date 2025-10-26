@@ -96,3 +96,48 @@ The `INSTALL_LOCK = true` setting prevents the initial configuration wizard from
 ## Network Configuration
 
 The container runs on a dedicated Docker bridge network named `gitea` for isolation and future extensibility (e.g., adding CI/CD runners, database upgrades).
+
+## Authentication
+
+### GitHub OAuth (External Authentication)
+
+AtomicQMS supports GitHub OAuth authentication for Single Sign-On.
+
+**Quick Setup:**
+1. See `README.md` for complete step-by-step instructions
+2. Create GitHub OAuth App at https://github.com/settings/developers
+3. Copy `.env.example` to `.env` and add your credentials
+4. Run `./setup-github-oauth.sh`
+
+**Configuration Files:**
+- `gitea/gitea/conf/app.ini` - OAuth capability settings (pre-configured)
+- `.env` - Your GitHub OAuth credentials (not in Git)
+- OAuth source stored in Gitea database (not in Git)
+
+**Key Settings in app.ini:**
+```ini
+[service]
+DISABLE_REGISTRATION = true              # No local registration
+ALLOW_ONLY_EXTERNAL_REGISTRATION = true  # OAuth registration allowed
+ENABLE_USER_AVATAR = true                # Avatar support
+
+[oauth2_client]
+ENABLE_AUTO_REGISTRATION = true          # Auto-create users on first login
+UPDATE_AVATAR = true                     # Sync GitHub avatars
+```
+
+**Features:**
+- Single Sign-On with GitHub accounts
+- Automatic user registration on first login
+- Profile sync (username, email, avatar)
+- Minimal OAuth scopes (read:user, user:email)
+- Account linking for existing users
+
+**Important Notes:**
+- OAuth configuration requires TWO steps: app.ini (done) + database setup (via script)
+- The setup script auto-detects whether to add or update OAuth source
+- Callback URL must be: `http://localhost:3001/user/oauth2/github/callback`
+- For production: Use HTTPS and secure secrets management
+
+**Troubleshooting:**
+See `README.md` Troubleshooting section for common issues and solutions.
