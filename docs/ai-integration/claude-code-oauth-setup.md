@@ -816,7 +816,7 @@ docker logs atomicqms-runner
 
 - [Gitea Actions Overview](https://docs.gitea.com/usage/actions/overview)
 - [Claude API Documentation](https://docs.anthropic.com/claude/reference/getting-started-with-the-api)
-- [claude-code-gitea-action](https://github.com/markwylde/claude-code-gitea-action)
+- Vendored Claude action: `actions/claude-code-gitea-action` (upstream MIT source: [github.com/markwylde/claude-code-gitea-action](https://github.com/markwylde/claude-code-gitea-action))
 
 ### AtomicQMS Documentation
 

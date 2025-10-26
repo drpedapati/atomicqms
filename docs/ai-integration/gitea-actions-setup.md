@@ -26,7 +26,8 @@ AtomicQMS integrates Claude AI as an intelligent assistant for quality managemen
 │  │  ┌──────────────────────────────────┐  │ │
 │  │  │  Gitea Actions Runner            │  │ │
 │  │  │  - Checks out code               │  │ │
-│  │  │  - Runs claude-code-gitea-action │  │ │
+│  │  │  - Runs vendored claude action   │  │ │
+│  │  │    (`actions/claude-code-gitea-action`) │ │
 │  │  │  - Loads QMS context             │  │ │
 │  │  └──────────────────────────────────┘  │ │
 │  │              │                          │ │
@@ -344,7 +345,7 @@ prompt: 'You are a CAPA documentation expert...'
 
 For issues with:
 - **Gitea Actions**: Check [Gitea Actions docs](https://docs.gitea.com/usage/actions/overview)
-- **Claude Code**: See [claude-code-gitea-action](https://github.com/markwylde/claude-code-gitea-action)
+- **Claude Code**: Use the vendored copy in `actions/claude-code-gitea-action` (upstream MIT source: [github.com/markwylde/claude-code-gitea-action](https://github.com/markwylde/claude-code-gitea-action))
 - **AtomicQMS**: Open an issue in this repository
 
 ## References
