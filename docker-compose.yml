@@ -35,6 +35,10 @@ services:
       - GITEA_INSTANCE_URL=http://server:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN:-}
       - GITEA_RUNNER_NAME=atomicqms-runner-1
+      # Global Claude Code credentials (available to all repositories)
+      # Set these in .env file to avoid configuring per-repository
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
 
   auto-init:
     build: ./auto-init-service

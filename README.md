@@ -52,8 +52,16 @@ The AI assistant understands QMS terminology, regulatory requirements, and maint
 
 1. Get runner token from Gitea: Site Admin → Actions → Runners → Create new Runner
 2. Run the setup script: `./setup-claude-assistant.sh`
-3. Configure repository secrets (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN)
-4. Test by commenting: `@qms-assistant Hello!`
+3. **Set global credentials** in `.env` file (works for ALL repositories):
+   ```bash
+   # Add ONE of these to your .env file:
+   ANTHROPIC_API_KEY=sk-ant-xxxxx        # Option 1: Direct API access
+   CLAUDE_CODE_OAUTH_TOKEN=your-token    # Option 2: Claude Max users
+   ```
+4. Restart runner: `docker compose restart runner`
+5. Test by commenting: `@qms-assistant Hello!`
+
+**No per-repository configuration needed!** The AI assistant now works in all repositories automatically.
 
 **📖 Complete Setup Guides:**
 - **Anthropic API Key**: [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
@@ -85,10 +93,11 @@ This creates a reusable template repository (`atomicqms-template`) in your Gitea
 **Usage:**
 1. Run setup script once: `./setup-template-repository.sh`
 2. When creating new repository: Select "atomicqms-template" from template dropdown
-3. Configure secrets in new repository:
-   - Required: `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
-   - Optional: `QMS_SERVER_URL` (only needed for production with public URLs; local dev uses internal Docker networking)
-4. Start documenting!
+3. **That's it!** If you set global credentials in `.env`, the AI assistant works immediately
+4. (Optional) Override credentials per-repository in Settings → Secrets:
+   - `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` - Override global credentials
+   - `QMS_SERVER_URL` - Only for production with public URLs
+5. Start documenting!
 
 **📖 Complete Guide:** [docs/ai-integration/template-repository-setup.md](./docs/ai-integration/template-repository-setup.md)
 

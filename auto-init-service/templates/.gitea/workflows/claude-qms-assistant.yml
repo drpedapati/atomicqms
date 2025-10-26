@@ -45,7 +45,8 @@ jobs:
 
           # Authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Try repository secret first, fall back to runner environment variable
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY || secrets.CLAUDE_CODE_OAUTH_TOKEN || env.ANTHROPIC_API_KEY || env.CLAUDE_CODE_OAUTH_TOKEN }}
 
           # Git configuration
           claude_git_name: 'AtomicQMS Assistant'
