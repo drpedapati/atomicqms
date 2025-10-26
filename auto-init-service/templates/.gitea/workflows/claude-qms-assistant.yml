@@ -97,6 +97,7 @@ jobs:
           # Environment
           experimental_allowed_domains: ''
         env:
-          # Use Docker internal networking (server:3000) by default
+          # Use host.docker.internal to access Gitea from job containers
+          # This allows containers to reach the host machine's ports
           # In production, override with QMS_SERVER_URL secret (e.g., https://your-domain.com)
-          GITEA_SERVER_URL: ${{ secrets.QMS_SERVER_URL || 'http://server:3000' }}
+          GITEA_SERVER_URL: ${{ secrets.QMS_SERVER_URL || 'http://host.docker.internal:3001' }}
