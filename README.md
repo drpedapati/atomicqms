@@ -39,7 +39,16 @@ Every AtomicQMS runs as a micro-deployed container that operates independently o
 
 ## AI Integration
 
-AtomicQMS integrates directly with LLM APIs (Claude, Codex, etc.) for AI-assisted drafting, document refinement, review summarization, and quality record completion. This reduces authoring time and ensures documentation consistency without relying on centralized QMS vendors or consultants.
+AtomicQMS features an integrated Claude AI Assistant that works directly within your Pull Requests and Issues. Simply mention `@qms-assistant` to get intelligent help with:
+
+- **SOP Review**: Automated completeness and compliance checking
+- **CAPA Documentation**: Structured guidance for root cause analysis and corrective actions
+- **Change Impact Assessment**: Analyze effects of process or equipment changes
+- **Compliance Verification**: Check against FDA 21 CFR Part 11, ISO 13485, GxP requirements
+
+The AI assistant understands QMS terminology, regulatory requirements, and maintains context throughout your workflow. All interactions are logged for audit purposes.
+
+**Setup**: See [AI Integration Setup Guide](./docs/ai-integration/gitea-actions-setup.md) for configuration instructions.
 
 ## Target Market
 

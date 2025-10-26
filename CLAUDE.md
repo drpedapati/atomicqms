@@ -163,3 +163,54 @@ UPDATE_AVATAR = true                     # Sync GitHub avatars
 
 **Troubleshooting:**
 See `README.md` Troubleshooting section for common issues and solutions.
+
+## AI Integration (Claude Assistant)
+
+AtomicQMS includes AI-powered assistance for QMS workflows via the Claude API integrated through Gitea Actions.
+
+### Features
+
+- **SOP Review**: Automated document review for completeness and compliance
+- **CAPA Guidance**: Structured assistance for corrective/preventive action documentation
+- **Change Assessment**: Impact analysis for process and equipment changes
+- **Compliance Checking**: FDA 21 CFR Part 11, ISO 13485, GxP compliance verification
+
+### Setup
+
+1. **Enable Gitea Actions** (already configured in `app.ini`)
+2. **Start Actions Runner**:
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+
+   # Get runner token from: Site Admin → Actions → Runners → Create new Runner
+   # Add token to .env file
+
+   # Start with runner
+   docker compose up -d
+   ```
+
+3. **Configure Repository Secrets**:
+   - Navigate to repository Settings → Secrets
+   - Add `ANTHROPIC_API_KEY` with your Claude API key
+   - Add `GITEA_SERVER_URL` (e.g., http://localhost:3001)
+
+4. **Trigger Assistant**:
+   - In any PR or Issue, comment: `@qms-assistant [your request]`
+   - Example: `@qms-assistant Review this SOP for ISO 13485 compliance`
+
+### Workflow Files
+
+- `.gitea/workflows/claude-qms-assistant.yml` - Main AI assistant workflow
+- `.claude/qms-context.md` - QMS-specific context and guidelines
+
+### Documentation
+
+Complete setup and usage guide: [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
+
+### Security
+
+- AI assistant has restricted tool access (Read, Edit, Grep, Glob only)
+- No arbitrary command execution (Bash disabled)
+- All interactions logged in PR/Issue comments and Actions logs
+- API keys stored as encrypted repository secrets

@@ -19,3 +19,19 @@ services:
     ports:
       - "3001:3000"
       - "222:22"
+
+  runner:
+    image: gitea/act_runner:latest
+    container_name: atomicqms-runner
+    restart: unless-stopped
+    depends_on:
+      - server
+    networks:
+      - gitea
+    volumes:
+      - ./runner-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - GITEA_INSTANCE_URL=http://server:3000
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN:-}
+      - GITEA_RUNNER_NAME=atomicqms-runner-1
