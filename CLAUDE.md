@@ -42,7 +42,7 @@ docker compose up -d --build
 
 ## Configuration
 
-The system uses **pre-seeded configuration** to skip the GUI installation wizard. Key settings in `gitea/conf/app.ini`:
+The system uses **pre-seeded configuration** to skip the GUI installation wizard. Key settings in `gitea/gitea/conf/app.ini`:
 
 - **App Name**: AtomicQMS
 - **Root URL**: http://localhost:3001/
@@ -53,7 +53,7 @@ The system uses **pre-seeded configuration** to skip the GUI installation wizard
 - **LFS Support**: Enabled at `/data/git/lfs`
 
 To modify configuration:
-1. Edit `gitea/conf/app.ini`
+1. Edit `gitea/gitea/conf/app.ini`
 2. Restart container: `docker compose restart`
 
 ## Automated Setup
@@ -65,12 +65,18 @@ The container starts immediately without requiring browser configuration:
 docker compose up -d
 
 # Create admin user (required on first run)
-docker exec -it atomicqms gitea admin user create \
-  --config /data/gitea/conf/app.ini \
+docker exec -u git atomicqms gitea admin user create \
   --username admin \
   --password 'YourSecurePassword' \
   --email admin@example.com \
-  --admin
+  --admin \
+  --must-change-password=false
+
+# Or change password for existing user
+docker exec -u git atomicqms gitea admin user change-password \
+  --username admin \
+  --password 'YourNewPassword' \
+  --must-change-password=false
 
 # Access web interface
 open http://localhost:3001
@@ -81,10 +87,11 @@ The `INSTALL_LOCK = true` setting prevents the initial configuration wizard from
 ## Data Management
 
 - **Git Repositories**: Stored in `./gitea/git/repositories/` (gitignored)
-- **Configuration**: `./gitea/conf/app.ini` (tracked in Git)
-- **Database**: `./gitea/gitea.db` (gitignored)
+- **Configuration**: `./gitea/gitea/conf/app.ini` (tracked in Git)
+- **Database**: `./gitea/gitea/gitea.db` (gitignored)
 - **SSH Keys**: Auto-generated in `./gitea/ssh/` (gitignored)
 - **LFS Objects**: Stored in `./gitea/git/lfs/` (gitignored)
+- **Runtime Data**: Logs, sessions, uploads in `./gitea/gitea/` (gitignored)
 
 ## Network Configuration
 

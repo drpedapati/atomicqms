@@ -1,8 +1,10 @@
-# Gitea data directory (ignore everything except conf/)
+# Gitea data directory (ignore everything except gitea/conf/)
 gitea/*
-!gitea/conf/
-gitea/conf/*
-!gitea/conf/app.ini
+!gitea/gitea/
+gitea/gitea/*
+!gitea/gitea/conf/
+gitea/gitea/conf/*
+!gitea/gitea/conf/app.ini
 
 # Docker volumes
 *.log
