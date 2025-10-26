@@ -48,7 +48,17 @@ AtomicQMS features an integrated Claude AI Assistant that works directly within 
 
 The AI assistant understands QMS terminology, regulatory requirements, and maintains context throughout your workflow. All interactions are logged for audit purposes.
 
-**Setup**: See [AI Integration Setup Guide](./docs/ai-integration/gitea-actions-setup.md) for configuration instructions.
+**Quick Setup:**
+
+1. Get runner token from Gitea: Site Admin → Actions → Runners → Create new Runner
+2. Run the setup script: `./setup-claude-assistant.sh`
+3. Configure repository secrets (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN)
+4. Test by commenting: `@qms-assistant Hello!`
+
+**📖 Complete Setup Guides:**
+- **Anthropic API Key**: [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
+- **Claude Code OAuth**: [docs/ai-integration/claude-code-oauth-setup.md](./docs/ai-integration/claude-code-oauth-setup.md)
+- **QMS Workflows**: [docs/ai-integration/qms-workflows.md](./docs/ai-integration/qms-workflows.md)
 
 ## Target Market
 

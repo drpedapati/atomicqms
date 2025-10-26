@@ -169,29 +169,24 @@ AtomicQMS includes AI-powered assistance for QMS workflows via the Claude API in
 - **Change Assessment**: Impact analysis for process and equipment changes
 - **Compliance Checking**: FDA 21 CFR Part 11, ISO 13485, GxP compliance verification
 
-### Setup
+### Quick Setup
 
-1. **Enable Gitea Actions** (already configured in `app.ini`)
-2. **Start Actions Runner**:
-   ```bash
-   # Copy environment template
-   cp .env.example .env
+```bash
+# 1. Get runner token from Gitea
+# Site Admin → Actions → Runners → Create new Runner
 
-   # Get runner token from: Site Admin → Actions → Runners → Create new Runner
-   # Add token to .env file
+# 2. Run automated setup
+chmod +x setup-claude-assistant.sh
+./setup-claude-assistant.sh
 
-   # Start with runner
-   docker compose up -d
-   ```
+# 3. Configure repository secrets (via Gitea UI)
+# Settings → Secrets → Add:
+#   ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN
+#   GITEA_SERVER_URL
 
-3. **Configure Repository Secrets**:
-   - Navigate to repository Settings → Secrets
-   - Add `ANTHROPIC_API_KEY` with your Claude API key
-   - Add `GITEA_SERVER_URL` (e.g., http://localhost:3001)
-
-4. **Trigger Assistant**:
-   - In any PR or Issue, comment: `@qms-assistant [your request]`
-   - Example: `@qms-assistant Review this SOP for ISO 13485 compliance`
+# 4. Test in PR/Issue
+# Comment: @qms-assistant Hello!
+```
 
 ### Workflow Files
 
