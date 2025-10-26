@@ -20,10 +20,15 @@ container:
   network: gitea
 ```
 
-This ensures that job containers are attached to the `gitea` Docker network, allowing them to:
-- Resolve the `server` hostname (Gitea instance)
-- Perform git operations (clone, checkout, push)
-- Access internal Docker networking
+**Note on Networking**: Job containers run in isolation and cannot directly access the `gitea` network.
+Instead, the runner is configured to use `host.docker.internal:3001` in `docker-compose.yml`, which allows
+job containers to access Gitea via the published port on the Docker host.
+
+This configuration in `docker-compose.yml` ensures git operations succeed:
+```yaml
+environment:
+  - GITEA_INSTANCE_URL=http://host.docker.internal:3001
+```
 
 **Without this setting**, job containers cannot reach the Gitea server and git operations will fail with:
 ```
@@ -34,12 +39,25 @@ fatal: unable to access 'http://atomicqms:3000/...': Could not resolve host: ato
 
 ### Job containers can't reach Gitea
 
-**Symptom**: Workflows fail with "Could not resolve host: server"
+**Symptom**: Workflows fail with "Could not resolve host: atomicqms" or "Could not resolve host: server"
 
 **Solution**:
-1. Verify `config.yaml` exists: `docker exec atomicqms-runner ls -la /data/config.yaml`
-2. Verify network setting: `docker exec atomicqms-runner cat /data/config.yaml | grep network`
-3. Restart runner: `docker compose restart runner`
+1. Verify runner URL in registration file:
+   ```bash
+   cat runner-data/.runner | grep address
+   # Should show: "address": "http://host.docker.internal:3001"
+   ```
+
+2. If incorrect, delete registration and restart runner:
+   ```bash
+   rm -f runner-data/.runner
+   docker compose restart runner
+   ```
+
+3. Verify runner registered successfully:
+   ```bash
+   docker logs atomicqms-runner | grep "registered successfully"
+   ```
 
 ### Check runner is using config
 

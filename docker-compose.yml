@@ -32,7 +32,9 @@ services:
       - ./runner-data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - GITEA_INSTANCE_URL=http://atomicqms:3000
+      # Use host.docker.internal to access Gitea via published port
+      # This allows job containers (which run in isolation) to reach Gitea
+      - GITEA_INSTANCE_URL=http://host.docker.internal:3001
       - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN:-}
       - GITEA_RUNNER_NAME=atomicqms-runner-1
       # Global Claude Code credentials (available to all repositories)
