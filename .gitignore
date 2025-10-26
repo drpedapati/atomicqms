@@ -18,6 +18,9 @@ gitea/public/assets/img/*.png
 # Docker volumes
 *.log
 
+# Actions runner data
+runner-data/
+
 # Environment files
 .env
 .env.local
