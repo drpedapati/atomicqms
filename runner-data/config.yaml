@@ -16,7 +16,8 @@ container:
   # Network configuration for job containers
   # IMPORTANT: Job containers must be on the same network as Gitea server
   # to resolve the "server" hostname for git operations
-  network: gitea
+  # Use the full Docker Compose network name (includes project prefix)
+  network: atomicqms-claude-integration_gitea
 
   # Enable privileged mode if needed for Docker-in-Docker
   privileged: false
