@@ -121,22 +121,30 @@ The container runs on a dedicated Docker bridge network named `gitea` for isolat
 
 ## Authentication
 
-### GitHub OAuth (External Authentication)
+AtomicQMS supports two independent authentication systems:
 
-AtomicQMS supports GitHub OAuth authentication for Single Sign-On.
+| Type | Purpose | Documentation |
+|------|---------|---------------|
+| **GitHub OAuth** | User login (SSO) | [docs/authentication/github-oauth-setup.md](./docs/authentication/github-oauth-setup.md) |
+| **Claude Code OAuth** | AI assistant | [docs/ai-integration/claude-code-oauth-setup.md](./docs/ai-integration/claude-code-oauth-setup.md) |
+
+### GitHub OAuth (User Single Sign-On)
+
+Allows users to sign into AtomicQMS with their GitHub accounts.
 
 **Quick Setup:**
-1. See `README.md` for complete step-by-step instructions
-2. Create GitHub OAuth App at https://github.com/settings/developers
-3. Copy `.env.example` to `.env` and add your credentials
-4. Run `./setup-github-oauth.sh`
+```bash
+# 1. Create GitHub OAuth App at https://github.com/settings/developers
+# 2. Configure credentials
+cp .env.example .env
+nano .env  # Add GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
 
-**Configuration Files:**
-- `gitea/gitea/conf/app.ini` - OAuth capability settings (pre-configured)
-- `.env` - Your GitHub OAuth credentials (not in Git)
-- OAuth source stored in Gitea database (not in Git)
+# 3. Run setup script
+chmod +x setup-github-oauth.sh
+./setup-github-oauth.sh
+```
 
-**Key Settings in app.ini:**
+**Key Configuration** (pre-configured in `app.ini`):
 ```ini
 [service]
 DISABLE_REGISTRATION = true              # No local registration
@@ -148,21 +156,7 @@ ENABLE_AUTO_REGISTRATION = true          # Auto-create users on first login
 UPDATE_AVATAR = true                     # Sync GitHub avatars
 ```
 
-**Features:**
-- Single Sign-On with GitHub accounts
-- Automatic user registration on first login
-- Profile sync (username, email, avatar)
-- Minimal OAuth scopes (read:user, user:email)
-- Account linking for existing users
-
-**Important Notes:**
-- OAuth configuration requires TWO steps: app.ini (done) + database setup (via script)
-- The setup script auto-detects whether to add or update OAuth source
-- Callback URL must be: `http://localhost:3001/user/oauth2/github/callback`
-- For production: Use HTTPS and secure secrets management
-
-**Troubleshooting:**
-See `README.md` Troubleshooting section for common issues and solutions.
+**📖 Complete Guide:** [docs/authentication/github-oauth-setup.md](./docs/authentication/github-oauth-setup.md)
 
 ## AI Integration (Claude Assistant)
 
@@ -206,7 +200,9 @@ AtomicQMS includes AI-powered assistance for QMS workflows via the Claude API in
 
 ### Documentation
 
-Complete setup and usage guide: [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
+- **AI Integration Setup** (Anthropic API key): [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
+- **Claude Code OAuth Setup** (Use Claude subscription): [docs/ai-integration/claude-code-oauth-setup.md](./docs/ai-integration/claude-code-oauth-setup.md)
+- **QMS Workflows**: [docs/ai-integration/qms-workflows.md](./docs/ai-integration/qms-workflows.md)
 
 ### Security
 

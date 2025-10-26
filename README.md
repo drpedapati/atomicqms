@@ -63,102 +63,39 @@ Early-stage biotech, academic labs, and healthcare startups that need regulatory
 
 ---
 
-## GitHub OAuth Authentication
+## Authentication
 
-AtomicQMS supports GitHub OAuth for Single Sign-On authentication. Users can sign in with their GitHub accounts instead of creating local credentials.
+> **Note:** This section covers **user authentication** (how users sign into AtomicQMS).
+> For **AI assistant authentication**, see [AI Integration](#ai-integration) below.
 
-### Features
+### GitHub OAuth (Single Sign-On)
 
+AtomicQMS supports GitHub OAuth for Single Sign-On authentication, allowing users to sign in with their GitHub accounts instead of creating local credentials.
+
+**Features:**
 - Single Sign-On with GitHub accounts
 - Automatic user registration on first login
 - Profile sync (username, email, avatar from GitHub)
 - Minimal OAuth scopes (read:user, user:email)
-- Secure credential management
 
-### Initial Setup
+**Quick Setup:**
 
-**Prerequisites:**
-- Docker and Docker Compose installed
-- GitHub account with OAuth App creation permissions
+1. Create a GitHub OAuth App at https://github.com/settings/developers
+2. Configure credentials in `.env` file
+3. Run the setup script: `./setup-github-oauth.sh`
+4. Users can now sign in with GitHub!
 
-**Step 1: Create GitHub OAuth Application**
+**📖 Complete Setup Guide:** See [docs/authentication/github-oauth-setup.md](./docs/authentication/github-oauth-setup.md) for:
+- Step-by-step instructions with screenshots
+- Prerequisites and verification steps
+- Troubleshooting common issues
+- Production deployment considerations
+- Security best practices
 
-1. Go to https://github.com/settings/developers
-2. Click **"New OAuth App"**
-3. Configure:
-   - **Application name**: `AtomicQMS`
-   - **Homepage URL**: `http://localhost:3001`
-   - **Authorization callback URL**: `http://localhost:3001/user/oauth2/github/callback`
-4. Click **"Register application"**
-5. Generate a new client secret and save both Client ID and Client Secret
-
-**Step 2: Configure OAuth Credentials**
-
-```bash
-# Copy the template
-cp .env.example .env
-
-# Edit with your GitHub OAuth App credentials
-nano .env
-```
-
-Replace the placeholder values:
-```bash
-GITHUB_CLIENT_ID=Iv1.YOUR_ACTUAL_CLIENT_ID
-GITHUB_CLIENT_SECRET=YOUR_ACTUAL_CLIENT_SECRET
-```
-
-**Step 3: Start Container**
-
-```bash
-docker compose up -d
-```
-
-**Step 4: Configure OAuth in Database**
-
-⚠️ **CRITICAL STEP** - Required for GitHub login to appear!
-
-```bash
-./setup-github-oauth.sh
-```
-
-This script:
-- Reads credentials from `.env` file
-- Checks if GitHub OAuth source exists
-- Creates or updates OAuth configuration
-- Restarts the container
-
-**Step 5: Test Login**
-
-1. Open http://localhost:3001/user/login
-2. Click **"Sign in with GitHub"**
-3. Authorize the application
-4. You'll be logged in!
-
-### Understanding the Two-Part Setup
-
-OAuth configuration requires two parts:
-
-1. **OAuth Capability** (pre-configured in `app.ini`): Enables OAuth support
-2. **OAuth Source** (you configure): Stores your GitHub app credentials in database
-
-The database configuration is not in Git (contains secrets), so each deployment must configure it via the setup script.
-
-### Troubleshooting
-
-**No "Sign in with GitHub" button:**
-- Ensure you ran `./setup-github-oauth.sh`
-- Check script output for errors
-- Restart container: `docker compose restart`
-
-**"incorrect_client_credentials" error:**
-- Verify Client ID and Secret match GitHub OAuth App
-- Update `.env` and re-run setup script
-
-**"Redirect URI mismatch" error:**
-- Callback URL must be exactly: `http://localhost:3001/user/oauth2/github/callback`
-
-For complete OAuth setup documentation and advanced configuration, see `CLAUDE.md`.
+**Quick Troubleshooting:**
+- No "Sign in with GitHub" button? Run `./setup-github-oauth.sh`
+- Credential errors? Verify Client ID and Secret match your GitHub OAuth App
+- Redirect URI mismatch? Callback URL must be: `http://localhost:3001/user/oauth2/github/callback`
 
 ---
 

@@ -14,9 +14,10 @@ export default defineUserConfig({
     navbar: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
+      { text: 'Authentication', link: '/authentication/' },
+      { text: 'AI Integration', link: '/ai-integration/' },
       { text: 'Architecture', link: '/architecture/' },
       { text: 'Deployment', link: '/deployment/' },
-      { text: 'AI Integration', link: '/ai-integration/' },
     ],
 
     sidebar: {
@@ -59,13 +60,23 @@ export default defineUserConfig({
           ],
         },
       ],
+      '/authentication/': [
+        {
+          text: 'Authentication',
+          children: [
+            '/authentication/README.md',
+            '/authentication/github-oauth-setup.md',
+          ],
+        },
+      ],
       '/ai-integration/': [
         {
           text: 'AI Integration',
           children: [
             '/ai-integration/README.md',
-            '/ai-integration/document-drafting.md',
-            '/ai-integration/review-automation.md',
+            '/ai-integration/gitea-actions-setup.md',
+            '/ai-integration/claude-code-oauth-setup.md',
+            '/ai-integration/qms-workflows.md',
           ],
         },
       ],
