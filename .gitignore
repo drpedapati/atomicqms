@@ -1,0 +1,29 @@
+# Gitea data directory
+gitea/
+
+# Docker volumes
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary files
+tmp/
+temp/
