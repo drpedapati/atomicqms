@@ -33,10 +33,16 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  AtomicQMS GitHub OAuth Setup${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
+# Load container names from .env or use defaults
+if [ -f .env ]; then
+    source .env
+fi
+CONTAINER_NAME="${ATOMICQMS_CONTAINER:-atomicqms}"
+
 # Check if container is running
 echo -e "${BLUE}[1/6] Checking container status...${NC}"
-if ! docker ps | grep -q atomicqms; then
-    echo -e "${RED}✗ Error: atomicqms container is not running${NC}"
+if ! docker ps | grep -q "$CONTAINER_NAME"; then
+    echo -e "${RED}✗ Error: $CONTAINER_NAME container is not running${NC}"
     echo -e "${YELLOW}Start it with: docker compose up -d${NC}"
     exit 1
 fi
@@ -81,9 +87,9 @@ OAUTH_SCOPES="${GITHUB_OAUTH_SCOPES:-read:user,user:email}"
 
 # Check if OAuth source already exists
 echo -e "${BLUE}[3/6] Checking if GitHub OAuth source exists...${NC}"
-if docker exec -u git atomicqms gitea admin auth list 2>/dev/null | grep -q "github"; then
+if docker exec -u git $CONTAINER_NAME gitea admin auth list 2>/dev/null | grep -q "github"; then
     OAUTH_EXISTS=true
-    OAUTH_ID=$(docker exec -u git atomicqms gitea admin auth list 2>/dev/null | grep "github" | awk '{print $1}')
+    OAUTH_ID=$(docker exec -u git $CONTAINER_NAME gitea admin auth list 2>/dev/null | grep "github" | awk '{print $1}')
     echo -e "${YELLOW}⚠ GitHub OAuth source already exists (ID: $OAUTH_ID)${NC}"
     echo -e "${BLUE}  Will update existing OAuth source...${NC}\n"
 else
@@ -97,7 +103,7 @@ echo -e "${BLUE}[4/6] Configuring GitHub OAuth...${NC}"
 
 if [ "$OAUTH_EXISTS" = true ]; then
     # Update existing OAuth source
-    docker exec -u git atomicqms gitea admin auth update-oauth \
+    docker exec -u git $CONTAINER_NAME gitea admin auth update-oauth \
         --id "$OAUTH_ID" \
         --name "$AUTH_SOURCE_NAME" \
         --provider "github" \
@@ -109,7 +115,7 @@ if [ "$OAUTH_EXISTS" = true ]; then
     echo -e "${GREEN}✓ OAuth source updated successfully${NC}\n"
 else
     # Add new OAuth source
-    docker exec -u git atomicqms gitea admin auth add-oauth \
+    docker exec -u git $CONTAINER_NAME gitea admin auth add-oauth \
         --name "$AUTH_SOURCE_NAME" \
         --provider "github" \
         --key "$GITHUB_CLIENT_ID" \
@@ -122,7 +128,7 @@ fi
 
 # Verify configuration
 echo -e "${BLUE}[5/6] Verifying configuration...${NC}"
-docker exec -u git atomicqms gitea admin auth list
+docker exec -u git $CONTAINER_NAME gitea admin auth list
 echo ""
 
 # Restart container to apply changes
@@ -153,6 +159,6 @@ echo -e "  Scopes: ${OAUTH_SCOPES}"
 echo -e "  Callback URL: http://localhost:3001/user/oauth2/${AUTH_SOURCE_NAME}/callback\n"
 
 echo -e "${YELLOW}Troubleshooting:${NC}"
-echo -e "  • No GitHub button? Check logs: ${YELLOW}docker logs atomicqms${NC}"
+echo -e "  • No GitHub button? Check logs: ${YELLOW}docker logs $CONTAINER_NAME${NC}"
 echo -e "  • Credential errors? Verify GitHub OAuth App settings"
 echo -e "  • Still issues? See README.md Troubleshooting section\n"

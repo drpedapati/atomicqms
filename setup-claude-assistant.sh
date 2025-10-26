@@ -35,11 +35,18 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  AtomicQMS AI Assistant Setup${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
+# Load container names from .env or use defaults
+if [ -f .env ]; then
+    source .env
+fi
+CONTAINER_NAME="${ATOMICQMS_CONTAINER:-atomicqms}"
+RUNNER_CONTAINER="${ATOMICQMS_RUNNER_CONTAINER:-atomicqms-runner}"
+
 # Check if containers are running
 echo -e "${BLUE}[1/8] Checking prerequisites...${NC}"
 
-if ! docker ps | grep -q atomicqms; then
-    echo -e "${RED}✗ Error: atomicqms container is not running${NC}"
+if ! docker ps | grep -q "$CONTAINER_NAME"; then
+    echo -e "${RED}✗ Error: $CONTAINER_NAME container is not running${NC}"
     echo -e "${YELLOW}Start it with: docker compose up -d${NC}"
     exit 1
 fi
@@ -47,7 +54,7 @@ echo -e "${GREEN}✓ AtomicQMS container is running${NC}"
 
 # Check if Actions are enabled
 echo -e "${BLUE}[2/8] Verifying Gitea Actions are enabled...${NC}"
-if docker exec atomicqms grep -q "ENABLED = true" /data/gitea/conf/app.ini 2>/dev/null | grep -A 1 "\[actions\]"; then
+if docker exec $CONTAINER_NAME grep -q "ENABLED = true" /data/gitea/conf/app.ini 2>/dev/null | grep -A 1 "\[actions\]"; then
     echo -e "${GREEN}✓ Gitea Actions are enabled${NC}"
 else
     echo -e "${YELLOW}⚠ Warning: Gitea Actions may not be enabled${NC}"
@@ -97,7 +104,7 @@ if [ "$NEED_RUNNER_TOKEN" = true ]; then
     echo -e "${BLUE}  Attempting to auto-generate token...${NC}"
 
     # Try to auto-generate token via Gitea CLI
-    AUTO_TOKEN=$(docker exec -u git atomicqms gitea actions generate-runner-token 2>&1 | head -1)
+    AUTO_TOKEN=$(docker exec -u git $CONTAINER_NAME gitea actions generate-runner-token 2>&1 | head -1)
 
     if [ ! -z "$AUTO_TOKEN" ] && [ ${#AUTO_TOKEN} -gt 20 ] && [[ ! "$AUTO_TOKEN" =~ "Error" ]]; then
         echo -e "${GREEN}✓ Token generated automatically${NC}"
@@ -153,9 +160,9 @@ echo -e "  Gitea URL: $GITEA_URL"
 echo -e "\n${BLUE}[6/8] Starting/restarting Actions Runner...${NC}"
 
 # Check if runner container exists
-if docker ps -a | grep -q atomicqms-runner; then
+if docker ps -a | grep -q $RUNNER_CONTAINER; then
     echo -e "${BLUE}  Restarting existing runner...${NC}"
-    docker rm -f atomicqms-runner >/dev/null 2>&1 || true
+    docker rm -f $RUNNER_CONTAINER >/dev/null 2>&1 || true
 fi
 
 # Start with docker compose
@@ -167,7 +174,7 @@ sleep 5
 
 # Check runner logs
 echo -e "\n${BLUE}[7/8] Verifying runner connection...${NC}"
-RUNNER_LOGS=$(docker logs atomicqms-runner 2>&1 | tail -20)
+RUNNER_LOGS=$(docker logs $RUNNER_CONTAINER 2>&1 | tail -20)
 
 if echo "$RUNNER_LOGS" | grep -q "Runner registered successfully"; then
     echo -e "${GREEN}✓ Runner registered successfully!${NC}"
@@ -183,12 +190,12 @@ elif echo "$RUNNER_LOGS" | grep -q "401\|invalid token\|authentication failed"; 
     RUNNER_REGISTERED=false
 else
     # Check if runner is actually running
-    if docker logs atomicqms-runner 2>&1 | grep -q "Runner started"; then
+    if docker logs $RUNNER_CONTAINER 2>&1 | grep -q "Runner started"; then
         echo -e "${GREEN}✓ Runner is active and connected${NC}"
         RUNNER_REGISTERED=true
     else
         echo -e "${YELLOW}⚠ Runner status unclear, check logs:${NC}"
-        echo -e "${YELLOW}  docker logs atomicqms-runner${NC}"
+        echo -e "${YELLOW}  docker logs $RUNNER_CONTAINER${NC}"
         RUNNER_REGISTERED="unknown"
     fi
 fi
@@ -223,10 +230,10 @@ echo -e ""
 
 # Check if we can list repositories (requires admin access)
 echo -e "${BLUE}Checking for repositories...${NC}"
-REPO_COUNT=$(docker exec atomicqms gitea admin repo list 2>/dev/null | wc -l || echo "0")
+REPO_COUNT=$(docker exec $CONTAINER_NAME gitea admin repo list 2>/dev/null | wc -l || echo "0")
 if [ "$REPO_COUNT" -gt 1 ]; then
     echo -e "${GREEN}✓ Found repositories:${NC}"
-    docker exec atomicqms gitea admin repo list 2>/dev/null | head -10
+    docker exec $CONTAINER_NAME gitea admin repo list 2>/dev/null | head -10
     if [ "$REPO_COUNT" -gt 10 ]; then
         echo -e "${YELLOW}  ... and $((REPO_COUNT - 10)) more${NC}"
     fi
@@ -265,8 +272,8 @@ echo -e "  • QMS Workflows: ${YELLOW}docs/ai-integration/qms-workflows.md${NC}
 echo -e ""
 
 echo -e "${BLUE}Useful commands:${NC}"
-echo -e "  • Check runner logs:  ${CYAN}docker logs atomicqms-runner${NC}"
-echo -e "  • Restart runner:     ${CYAN}docker restart atomicqms-runner${NC}"
+echo -e "  • Check runner logs:  ${CYAN}docker logs $RUNNER_CONTAINER${NC}"
+echo -e "  • Restart runner:     ${CYAN}docker restart $RUNNER_CONTAINER${NC}"
 echo -e "  • View workflows:     ${CYAN}ls -la .gitea/workflows/${NC}"
 echo -e "  • Test connection:    Open ${YELLOW}http://localhost:3001${NC}"
 echo -e ""
