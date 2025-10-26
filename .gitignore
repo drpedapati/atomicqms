@@ -18,8 +18,11 @@ gitea/public/assets/img/*.png
 # Docker volumes
 *.log
 
-# Actions runner data
-runner-data/
+# Actions runner data (ignore runtime files, keep config)
+runner-data/.runner
+runner-data/.runner_cache/
+runner-data/actions/
+runner-data/**/*.log
 
 # Environment files
 .env

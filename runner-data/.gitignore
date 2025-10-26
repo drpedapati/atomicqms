@@ -1,0 +1,6 @@
+# Runner registration file (contains tokens)
+.runner
+
+# Runner cache and artifacts
+.runner_cache/
+actions/

@@ -1,0 +1,32 @@
+# Gitea Actions Runner Configuration
+# This file configures how the act_runner spawns job containers
+
+log:
+  level: info
+
+runner:
+  # Fetch new jobs every 2 seconds
+  fetch_timeout: 2s
+  fetch_interval: 2s
+
+  # Timeout for a single job
+  timeout: 3h
+
+container:
+  # Network configuration for job containers
+  # IMPORTANT: Job containers must be on the same network as Gitea server
+  # to resolve the "server" hostname for git operations
+  network: gitea
+
+  # Enable privileged mode if needed for Docker-in-Docker
+  privileged: false
+
+  # Container options
+  options: ""
+
+  # Mount docker socket for Docker-in-Docker workflows
+  # workdir_parent: ""
+
+host:
+  # Use the docker socket from the host
+  workdir_parent: ""
