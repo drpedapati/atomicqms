@@ -94,21 +94,33 @@ fi
 
 if [ "$NEED_RUNNER_TOKEN" = true ]; then
     echo -e "${YELLOW}⚠ Runner token not configured${NC}"
-    echo -e "\n${CYAN}To get your runner registration token:${NC}"
-    echo -e "  1. Open: ${YELLOW}http://localhost:3001${NC}"
-    echo -e "  2. Log in as admin"
-    echo -e "  3. Go to: ${YELLOW}Site Administration → Actions → Runners${NC}"
-    echo -e "  4. Click: ${YELLOW}Create new Runner${NC}"
-    echo -e "  5. Copy the token shown in the registration command"
-    echo -e "\n${CYAN}Example token format:${NC}"
-    echo -e "  ${YELLOW}AbCdEfGhIjKlMnOpQrStUvWxYz1234567890${NC}"
-    echo -e ""
+    echo -e "${BLUE}  Attempting to auto-generate token...${NC}"
 
-    read -p "$(echo -e ${CYAN}Enter your runner registration token: ${NC})" INPUT_RUNNER_TOKEN
+    # Try to auto-generate token via Gitea CLI
+    AUTO_TOKEN=$(docker exec -u git atomicqms gitea actions generate-runner-token 2>&1 | head -1)
 
-    if [ -z "$INPUT_RUNNER_TOKEN" ]; then
-        echo -e "${RED}✗ No token provided${NC}"
-        exit 1
+    if [ ! -z "$AUTO_TOKEN" ] && [ ${#AUTO_TOKEN} -gt 20 ] && [[ ! "$AUTO_TOKEN" =~ "Error" ]]; then
+        echo -e "${GREEN}✓ Token generated automatically${NC}"
+        echo -e "  Token: ${AUTO_TOKEN:0:10}...${AUTO_TOKEN: -10}"
+        INPUT_RUNNER_TOKEN=$AUTO_TOKEN
+    else
+        echo -e "${YELLOW}⚠ Auto-generation failed, manual input required${NC}"
+        echo -e "\n${CYAN}To get your runner registration token:${NC}"
+        echo -e "  1. Open: ${YELLOW}http://localhost:3001${NC}"
+        echo -e "  2. Log in as admin"
+        echo -e "  3. Go to: ${YELLOW}Site Administration → Actions → Runners${NC}"
+        echo -e "  4. Click: ${YELLOW}Create new Runner${NC}"
+        echo -e "  5. Copy the token shown in the registration command"
+        echo -e "\n${CYAN}Example token format:${NC}"
+        echo -e "  ${YELLOW}AbCdEfGhIjKlMnOpQrStUvWxYz1234567890${NC}"
+        echo -e ""
+
+        read -p "$(echo -e ${CYAN}Enter your runner registration token: ${NC})" INPUT_RUNNER_TOKEN
+
+        if [ -z "$INPUT_RUNNER_TOKEN" ]; then
+            echo -e "${RED}✗ No token provided${NC}"
+            exit 1
+        fi
     fi
 
     # Update or add RUNNER_TOKEN to .env
