@@ -58,7 +58,23 @@ The AI assistant understands QMS terminology, regulatory requirements, and maint
 **📖 Complete Setup Guides:**
 - **Anthropic API Key**: [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
 - **Claude Code OAuth**: [docs/ai-integration/claude-code-oauth-setup.md](./docs/ai-integration/claude-code-oauth-setup.md)
-- **QMS Workflows**: [docs/ai-integration/qms-workflows.md](./docs/ai-integration/qms-workflows.md)
+
+###  Automatic Repository Initialization
+
+Want the AI assistant files added to every new repository automatically? Enable the auto-init service:
+
+```bash
+./setup-auto-init.sh
+```
+
+The service runs in the background and automatically commits AI assistant files (`.gitea/workflows/claude-qms-assistant.yml` and `.claude/qms-context.md`) to any repository that doesn't have them.
+
+- **Periodic Scanning**: Checks all repositories every 5 minutes (configurable)
+- **Smart Detection**: Only adds files to repos that need them
+- **Zero Maintenance**: Runs automatically in Docker container
+- **Fully Logged**: All operations tracked for audit purposes
+
+See [auto-init-service/README.md](./auto-init-service/README.md) for configuration and troubleshooting.
 
 ## Target Market
 

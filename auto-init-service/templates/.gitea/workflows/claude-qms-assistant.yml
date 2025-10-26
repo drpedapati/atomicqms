@@ -1,0 +1,99 @@
+name: AtomicQMS AI Assistant
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  pull_request:
+    types: [opened, synchronize, assigned]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  claude-assistant:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qms-assistant')) ||
+      (github.event_name == 'issues' && github.event.action == 'opened') ||
+      (github.event_name == 'pull_request' && github.event.action == 'opened') ||
+      (github.event.action == 'assigned' && github.event.assignee.login == 'qms-assistant')
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run AtomicQMS AI Assistant
+        uses: markwylde/claude-code-gitea-action@main
+        with:
+          # Trigger configuration
+          trigger_phrase: '@qms-assistant'
+          assignee_trigger: 'qms-assistant'
+          label_trigger: 'ai-review'
+
+          # Branch management
+          base_branch: ${{ github.event.pull_request.base.ref || 'main' }}
+          branch_prefix: 'qms-ai/'
+
+          # Authentication
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Git configuration
+          claude_git_name: 'AtomicQMS Assistant'
+          claude_git_email: 'assistant@atomicqms.local'
+
+          # QMS-specific prompt context
+          prompt: |
+            You are the AtomicQMS AI Assistant, specialized in Quality Management Systems for regulated industries.
+
+            **Your Role:**
+            - Review SOPs, protocols, and quality documentation for compliance
+            - Assist with CAPA (Corrective and Preventive Action) documentation
+            - Provide change impact assessments
+            - Ensure audit trail integrity
+            - Maintain regulatory compliance language (FDA, ISO, GxP)
+
+            **QMS Context:**
+            - This is AtomicQMS: a Git-based QMS for biotech and healthcare
+            - Pull Requests = Document approval workflow
+            - Issues = CAPA records and change requests
+            - Commits = Audit trail entries
+            - Markdown = Single-source documentation format
+
+            **Documentation Standards:**
+            - Use clear, unambiguous language
+            - Include version control metadata
+            - Maintain traceability to requirements
+            - Document rationale for changes
+            - Flag compliance risks
+
+            **Allowed Operations:**
+            - Review and comment on documentation
+            - Suggest improvements for clarity and compliance
+            - Draft SOP sections or templates
+            - Analyze change impact
+            - NO: Direct approval, NO: Bypassing review process
+
+            Load additional context from: .claude/qms-context.md
+
+          # Security & Tool Restrictions
+          allowed_tools: 'Read,Edit,Grep,Glob'
+          disallowed_tools: 'Bash,WebSearch'
+
+          # Progress tracking
+          track_progress: true
+          use_sticky_comment: true
+
+          # Environment
+          experimental_allowed_domains: ''
+        env:
+          GITEA_SERVER_URL: ${{ secrets.GITEA_SERVER_URL || 'http://localhost:3001' }}

@@ -35,3 +35,21 @@ services:
       - GITEA_INSTANCE_URL=http://server:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN:-}
       - GITEA_RUNNER_NAME=atomicqms-runner-1
+
+  auto-init:
+    build: ./auto-init-service
+    container_name: ${ATOMICQMS_AUTO_INIT_CONTAINER:-atomicqms-auto-init}
+    restart: unless-stopped
+    depends_on:
+      - server
+    networks:
+      - gitea
+    volumes:
+      - ./gitea/git:/data/git:rw
+    environment:
+      - GIT_USER_NAME=${AUTO_INIT_GIT_USER_NAME:-AtomicQMS Auto-Init}
+      - GIT_USER_EMAIL=${AUTO_INIT_GIT_USER_EMAIL:-autoinit@atomicqms.local}
+      - REPO_ROOT=/data/git/repositories
+      - CHECK_INTERVAL=${AUTO_INIT_CHECK_INTERVAL:-300}
+    profiles:
+      - auto-init
