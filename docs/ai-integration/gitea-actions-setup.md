@@ -107,13 +107,43 @@ act_runner register --instance http://localhost:3001 --token YOUR_REGISTRATION_T
 act_runner daemon
 ```
 
-## Step 3: Get Runner Registration Token
+## Step 3: Configure Gitea Actions Runner
 
-1. Log in to AtomicQMS web interface: http://localhost:3001
-2. Navigate to **Site Administration** (gear icon) → **Actions** → **Runners**
-3. Click **Create new Runner**
-4. Copy the registration token
-5. Use token in docker-compose.yml or during `act_runner register`
+**✨ Automated Setup (Recommended):**
+
+Run the setup script to automatically generate and configure the runner:
+
+```bash
+./setup-claude-assistant.sh
+```
+
+The script will:
+- Auto-generate runner token via CLI
+- Update .env file
+- Start and verify runner connection
+- Provide guidance for repository secrets
+
+**Manual Setup (Alternative):**
+
+If the automated script fails or you prefer manual configuration:
+
+1. Generate token via CLI:
+   ```bash
+   docker exec -u git atomicqms gitea actions generate-runner-token
+   ```
+
+2. Or via Gitea UI:
+   - Log in to http://localhost:3001
+   - Go to **Site Administration** → **Actions** → **Runners**
+   - Click **Create new Runner**
+   - Copy the registration token
+
+3. Add to `.env` and restart:
+   ```bash
+   RUNNER_TOKEN=YOUR_TOKEN_HERE
+   GITEA_SERVER_URL=http://localhost:3001
+   docker compose up -d
+   ```
 
 ## Step 4: Configure Secrets
 

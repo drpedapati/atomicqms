@@ -155,22 +155,30 @@ grep -o '"oauth_token": "[^"]*' ~/.config/claude/config.json | cut -d'"' -f4
 
 ### Step 2.2: Enable and Configure Gitea Actions Runner
 
+**✨ Recommended:** Use the automated setup script:
+
+```bash
+./setup-claude-assistant.sh
+```
+
+The script will automatically:
+- Generate the runner token via CLI
+- Configure .env file
+- Register and verify the runner
+
+**Alternative - Manual Setup:**
+
+If you prefer manual configuration or the script fails:
+
 1. In Site Administration, go to **Actions** → **Runners**
-
 2. Click **Create new Runner**
-
-3. You'll see a registration command like:
+3. You'll see a registration command with a token
+4. Copy the token and add to `.env`:
    ```bash
-   act_runner register \
-     --instance http://localhost:3001 \
-     --token AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
+   RUNNER_TOKEN=AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
    ```
 
-4. **Copy the token** (the part after `--token`)
-
-   Example: `AbCdEfGhIjKlMnOpQrStUvWxYz1234567890`
-
-5. **Keep this window open** - you'll return here after the runner connects
+Continue with Step 2.3 if using the manual method.
 
 ### Step 2.3: Create Environment File
 
