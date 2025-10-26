@@ -18,7 +18,6 @@ services:
       - ./gitea:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-      - ./custom:/data/gitea
     ports:
       - "3001:3000"
       - "222:22"

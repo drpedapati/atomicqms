@@ -1,0 +1,91 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+AtomicQMS is a Docker-based deployment of Gitea - a self-hosted Git service (similar to GitHub/GitLab). This is designed as a Quality Management System (QMS) with Git-based version control capabilities.
+
+## Architecture
+
+- **Platform**: Docker Compose
+- **Git Service**: Gitea (latest version)
+- **Database**: SQLite3 (file-based at `/data/gitea/gitea.db`)
+- **Configuration**: Custom app.ini mounted from `./custom/conf/app.ini`
+- **Data Persistence**: Volumes mounted to `./gitea` and `./custom`
+
+## Service Access
+
+- **Web Interface**: http://localhost:3001
+- **SSH Git Access**: ssh://git@localhost:222
+- **Container Name**: atomicqms
+
+## Docker Management
+
+```bash
+# Start services
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# View logs
+docker logs atomicqms
+docker logs atomicqms -f  # follow mode
+
+# Restart container
+docker compose restart
+
+# Rebuild and restart
+docker compose up -d --build
+```
+
+## Configuration
+
+The system uses **pre-seeded configuration** to skip the GUI installation wizard. Key settings in `gitea/conf/app.ini`:
+
+- **App Name**: AtomicQMS
+- **Root URL**: http://localhost:3001/
+- **Registration**: Disabled (`DISABLE_REGISTRATION = true`)
+- **Public Access**: Enabled (`REQUIRE_SIGNIN_VIEW = false`)
+- **Repository Root**: `/data/git/repositories`
+- **Install Lock**: `true` (skips GUI setup on first run)
+- **LFS Support**: Enabled at `/data/git/lfs`
+
+To modify configuration:
+1. Edit `gitea/conf/app.ini`
+2. Restart container: `docker compose restart`
+
+## Automated Setup
+
+The container starts immediately without requiring browser configuration:
+
+```bash
+# Start the service
+docker compose up -d
+
+# Create admin user (required on first run)
+docker exec -it atomicqms gitea admin user create \
+  --config /data/gitea/conf/app.ini \
+  --username admin \
+  --password 'YourSecurePassword' \
+  --email admin@example.com \
+  --admin
+
+# Access web interface
+open http://localhost:3001
+```
+
+The `INSTALL_LOCK = true` setting prevents the initial configuration wizard from appearing.
+
+## Data Management
+
+- **Git Repositories**: Stored in `./gitea/git/repositories/` (gitignored)
+- **Configuration**: `./gitea/conf/app.ini` (tracked in Git)
+- **Database**: `./gitea/gitea.db` (gitignored)
+- **SSH Keys**: Auto-generated in `./gitea/ssh/` (gitignored)
+- **LFS Objects**: Stored in `./gitea/git/lfs/` (gitignored)
+
+## Network Configuration
+
+The container runs on a dedicated Docker bridge network named `gitea` for isolation and future extensibility (e.g., adding CI/CD runners, database upgrades).
