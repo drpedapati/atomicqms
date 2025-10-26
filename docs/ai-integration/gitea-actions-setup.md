@@ -79,13 +79,13 @@ services:
     depends_on:
       - server
     networks:
-      - gitea
-    volumes:
-      - ./runner-data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - GITEA_INSTANCE_URL=http://server:3000
-      - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
+  - gitea
+volumes:
+  - ./runner-data:/data
+  - /var/run/docker.sock:/var/run/docker.sock
+environment:
+  - GITEA_INSTANCE_URL=http://atomicqms:3000
+  - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
 ```
 
 ### Option B: Host Runner

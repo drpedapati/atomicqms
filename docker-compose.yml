@@ -32,7 +32,7 @@ services:
       - ./runner-data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - GITEA_INSTANCE_URL=http://server:3000
+      - GITEA_INSTANCE_URL=http://atomicqms:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN:-}
       - GITEA_RUNNER_NAME=atomicqms-runner-1
       # Global Claude Code credentials (available to all repositories)

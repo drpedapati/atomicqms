@@ -27,7 +27,7 @@ This ensures that job containers are attached to the `gitea` Docker network, all
 
 **Without this setting**, job containers cannot reach the Gitea server and git operations will fail with:
 ```
-fatal: unable to access 'http://server:3000/...': Could not resolve host: server
+fatal: unable to access 'http://atomicqms:3000/...': Could not resolve host: atomicqms
 ```
 
 ## Troubleshooting
