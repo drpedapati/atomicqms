@@ -182,7 +182,7 @@ chmod +x setup-claude-assistant.sh
 # 3. Configure repository secrets (via Gitea UI)
 # Settings → Secrets → Add:
 #   ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN
-#   GITEA_SERVER_URL
+#   QMS_SERVER_URL
 
 # 4. Test in PR/Issue
 # Comment: @qms-assistant Hello!

@@ -38,7 +38,7 @@ For the AI assistant to work, you must configure repository secrets:
 1. Go to **Settings → Secrets**
 2. Add required secrets:
    - `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
-   - `GITEA_SERVER_URL` (your AtomicQMS URL)
+   - `QMS_SERVER_URL` (your AtomicQMS URL)
 
 See the [AI Integration Guide]($TEMPLATE_LINK/docs/ai-integration/) for details.
 
@@ -64,7 +64,7 @@ Repository → Settings → Secrets → Add Secret
 
 # Required:
 ANTHROPIC_API_KEY=sk-ant-api03-...
-GITEA_SERVER_URL=http://your-atomicqms-url:3001
+QMS_SERVER_URL=http://your-atomicqms-url:3001
 ```
 
 ### 2. Create Your First SOP

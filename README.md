@@ -85,7 +85,9 @@ This creates a reusable template repository (`atomicqms-template`) in your Gitea
 **Usage:**
 1. Run setup script once: `./setup-template-repository.sh`
 2. When creating new repository: Select "atomicqms-template" from template dropdown
-3. Configure secrets in new repository (ANTHROPIC_API_KEY, GITEA_SERVER_URL)
+3. Configure secrets in new repository:
+   - Required: `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
+   - Optional: `QMS_SERVER_URL` (only needed for production with public URLs; local dev uses internal Docker networking)
 4. Start documenting!
 
 **📖 Complete Guide:** [docs/ai-integration/template-repository-setup.md](./docs/ai-integration/template-repository-setup.md)

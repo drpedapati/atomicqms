@@ -141,7 +141,7 @@ If the automated script fails or you prefer manual configuration:
 3. Add to `.env` and restart:
    ```bash
    RUNNER_TOKEN=YOUR_TOKEN_HERE
-   GITEA_SERVER_URL=http://localhost:3001
+   QMS_SERVER_URL=http://localhost:3001
    docker compose up -d
    ```
 
@@ -157,7 +157,7 @@ Add required secrets to your AtomicQMS instance:
 | Secret Name | Value | Description |
 |-------------|-------|-------------|
 | `ANTHROPIC_API_KEY` | `sk-ant-...` | Your Claude API key |
-| `GITEA_SERVER_URL` | `http://localhost:3001` | Public URL of your instance |
+| `QMS_SERVER_URL` | `http://localhost:3001` | Public URL of your instance |
 
 ### Via CLI
 

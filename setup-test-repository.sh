@@ -65,7 +65,7 @@ echo -e "  ${YELLOW}ANTHROPIC_API_KEY${NC}"
 echo -e "    Your Claude API key from https://console.anthropic.com/"
 echo -e "    Format: sk-ant-api03-...\n"
 
-echo -e "  ${YELLOW}GITEA_SERVER_URL${NC}"
+echo -e "  ${YELLOW}QMS_SERVER_URL${NC}"
 echo -e "    Your AtomicQMS URL (default: http://localhost:3001)\n"
 
 echo -e "Optional (if using Claude Code OAuth instead):"

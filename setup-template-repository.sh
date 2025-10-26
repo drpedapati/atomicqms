@@ -23,7 +23,7 @@ echo -e "${BLUE}========================================${NC}\n"
 TEMPLATE_DIR="template-qms-repository"
 REPO_NAME="atomicqms-template"
 REPO_DESCRIPTION="AtomicQMS Repository Template - Includes AI assistant, QMS structure, and sample documents"
-GITEA_URL="${GITEA_SERVER_URL:-http://localhost:3001}"
+GITEA_URL="${QMS_SERVER_URL:-http://localhost:3001}"
 
 # Check 1: Template directory exists
 echo -e "${BLUE}[1/7] Checking template directory...${NC}"
@@ -211,7 +211,7 @@ echo -e "   d) Click \"Create Repository\"\n"
 echo -e "${YELLOW}3. Configure AI assistant in new repository:${NC}"
 echo -e "   a) Go to new repository Settings → Secrets"
 echo -e "   b) Add: ${CYAN}ANTHROPIC_API_KEY${NC} or ${CYAN}CLAUDE_CODE_OAUTH_TOKEN${NC}"
-echo -e "   c) Add: ${CYAN}GITEA_SERVER_URL${NC} = $GITEA_URL\n"
+echo -e "   c) Add: ${CYAN}QMS_SERVER_URL${NC} = $GITEA_URL\n"
 
 echo -e "${YELLOW}4. Test AI assistant:${NC}"
 echo -e "   a) Create an issue in new repository"

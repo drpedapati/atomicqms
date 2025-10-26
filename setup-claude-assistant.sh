@@ -143,17 +143,17 @@ if [ "$NEED_RUNNER_TOKEN" = true ]; then
     RUNNER_TOKEN=$INPUT_RUNNER_TOKEN
 fi
 
-# Check GITEA_SERVER_URL
-if ! grep -q "^GITEA_SERVER_URL=" .env; then
-    echo -e "${YELLOW}⚠ GITEA_SERVER_URL not set, adding default...${NC}"
-    echo "GITEA_SERVER_URL=http://localhost:3001" >> .env
-    echo -e "${GREEN}✓ Added GITEA_SERVER_URL=http://localhost:3001${NC}"
+# Check QMS_SERVER_URL
+if ! grep -q "^QMS_SERVER_URL=" .env; then
+    echo -e "${YELLOW}⚠ QMS_SERVER_URL not set, adding default...${NC}"
+    echo "QMS_SERVER_URL=http://localhost:3001" >> .env
+    echo -e "${GREEN}✓ Added QMS_SERVER_URL=http://localhost:3001${NC}"
 fi
 
 # Show current configuration
 echo -e "\n${BLUE}[5/8] Current configuration:${NC}"
 echo -e "  Runner Token: ${RUNNER_TOKEN:0:10}...${RUNNER_TOKEN: -10}"
-GITEA_URL=$(grep "^GITEA_SERVER_URL=" .env | cut -d'=' -f2)
+GITEA_URL=$(grep "^QMS_SERVER_URL=" .env | cut -d'=' -f2)
 echo -e "  Gitea URL: $GITEA_URL"
 
 # Restart runner to apply token
@@ -225,7 +225,7 @@ echo -e "     ${CYAN}ANTHROPIC_API_KEY${NC} = your_api_key_here"
 echo -e "        OR"
 echo -e "     ${CYAN}CLAUDE_CODE_OAUTH_TOKEN${NC} = your_oauth_token_here"
 echo -e "  5. Also add:"
-echo -e "     ${CYAN}GITEA_SERVER_URL${NC} = $GITEA_URL"
+echo -e "     ${CYAN}QMS_SERVER_URL${NC} = $GITEA_URL"
 echo -e ""
 
 # Check if we can list repositories (requires admin access)

@@ -604,7 +604,7 @@ For production, **always use HTTPS**:
 
 3. **Update `.env`** (if using for production URLs):
    ```bash
-   GITEA_SERVER_URL=https://qms.yourcompany.com
+   QMS_SERVER_URL=https://qms.yourcompany.com
    ```
 
 ### Secrets Management

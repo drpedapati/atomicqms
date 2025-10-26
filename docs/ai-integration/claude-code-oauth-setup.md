@@ -204,12 +204,12 @@ Add your runner token:
 RUNNER_TOKEN=AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
 
 # Public URL for your AtomicQMS instance
-GITEA_SERVER_URL=http://localhost:3001
+QMS_SERVER_URL=http://localhost:3001
 ```
 
-**For production deployments**, update `GITEA_SERVER_URL` to your actual domain:
+**For production deployments**, update `QMS_SERVER_URL` to your actual domain:
 ```bash
-GITEA_SERVER_URL=https://qms.yourcompany.com
+QMS_SERVER_URL=https://qms.yourcompany.com
 ```
 
 Save and close the file (`Ctrl+X`, then `Y`, then `Enter` in nano).
@@ -290,7 +290,7 @@ Navigate to your existing repository where you want AI assistance.
 1. Click **Add Secret** again
 
 2. Configure:
-   - **Name:** `GITEA_SERVER_URL`
+   - **Name:** `QMS_SERVER_URL`
    - **Value:** Your AtomicQMS URL
      ```
      http://localhost:3001
@@ -303,7 +303,7 @@ Navigate to your existing repository where you want AI assistance.
 
 You should now see two secrets listed:
 - ✅ `CLAUDE_CODE_OAUTH_TOKEN` (last updated just now)
-- ✅ `GITEA_SERVER_URL` (last updated just now)
+- ✅ `QMS_SERVER_URL` (last updated just now)
 
 **⚠️ Security:** Secret values are encrypted and hidden after creation. You won't be able to view them again, only update or delete them.
 
@@ -872,7 +872,7 @@ claude logout && claude login
 ### Secret Names (Must Match Exactly)
 
 - `CLAUDE_CODE_OAUTH_TOKEN`
-- `GITEA_SERVER_URL`
+- `QMS_SERVER_URL`
 
 ---
 

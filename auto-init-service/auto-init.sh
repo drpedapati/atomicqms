@@ -103,30 +103,26 @@ init_repository() {
     local temp_dir=$(mktemp -d)
     trap "rm -rf '$temp_dir'" EXIT
 
-    # Clone the repository
-    if ! git clone "$repo_path" "$temp_dir" >/dev/null 2>&1; then
-        log_warning "Could not clone $user_name/$repo_name (may be empty)"
+    # Get the default branch name
+    local default_branch=$(git --git-dir="$repo_path" symbolic-ref --short HEAD 2>/dev/null || echo "main")
+
+    # Checkout files from the repository into temp directory using work-tree
+    if ! git --git-dir="$repo_path" --work-tree="$temp_dir" checkout -f "$default_branch" >/dev/null 2>&1; then
+        log_warning "Could not checkout $user_name/$repo_name"
         rm -rf "$temp_dir"
         trap - EXIT
         return 1
     fi
-
-    cd "$temp_dir"
-
-    # Configure git user
-    git config user.name "$GIT_USER_NAME"
-    git config user.email "$GIT_USER_EMAIL"
 
     # Track if we made any changes
     local changes_made=false
 
     # Copy missing files
     for file in "${REQUIRED_FILES[@]}"; do
-        if [ ! -f "$file" ]; then
+        if [ ! -f "$temp_dir/$file" ]; then
             log_info "  Adding: $file"
-            mkdir -p "$(dirname "$file")"
-            cp "$TEMPLATE_DIR/$file" "$file"
-            git add "$file"
+            mkdir -p "$temp_dir/$(dirname "$file")"
+            cp "$TEMPLATE_DIR/$file" "$temp_dir/$file"
             changes_made=true
         fi
     done
@@ -135,8 +131,19 @@ init_repository() {
         if [ "$DRY_RUN" = "true" ]; then
             log_warning "  [DRY RUN] Would commit AI assistant files"
         else
-            # Commit the changes
-            git commit -m "Add AI assistant integration
+            # Add files to the index
+            for file in "${REQUIRED_FILES[@]}"; do
+                if [ -f "$temp_dir/$file" ]; then
+                    git --git-dir="$repo_path" --work-tree="$temp_dir" add "$file" >/dev/null 2>&1
+                fi
+            done
+
+            # Commit directly to the bare repository
+            if GIT_AUTHOR_NAME="$GIT_USER_NAME" \
+               GIT_AUTHOR_EMAIL="$GIT_USER_EMAIL" \
+               GIT_COMMITTER_NAME="$GIT_USER_NAME" \
+               GIT_COMMITTER_EMAIL="$GIT_USER_EMAIL" \
+               git --git-dir="$repo_path" --work-tree="$temp_dir" commit -m "Add AI assistant integration
 
 Automatically added by AtomicQMS Auto-Init Service:
 - Gitea Actions workflow for Claude AI assistant
@@ -144,14 +151,10 @@ Automatically added by AtomicQMS Auto-Init Service:
 
 This enables @qms-assistant mentions in issues and pull requests.
 
-🤖 Generated with AtomicQMS Auto-Init" >/dev/null 2>&1
-
-            # Push to origin
-            if git push origin "$(git branch --show-current)" >/dev/null 2>&1; then
+🤖 Generated with AtomicQMS Auto-Init" >/dev/null 2>&1; then
                 log_success "  ✓ Initialized $user_name/$repo_name"
             else
-                log_error "  ✗ Failed to push to $user_name/$repo_name"
-                cd - >/dev/null
+                log_error "  ✗ Failed to commit to $user_name/$repo_name"
                 rm -rf "$temp_dir"
                 trap - EXIT
                 return 1
@@ -161,7 +164,6 @@ This enables @qms-assistant mentions in issues and pull requests.
         log_info "  Already initialized (no changes needed)"
     fi
 
-    cd - >/dev/null
     rm -rf "$temp_dir"
     trap - EXIT
     return 0
@@ -179,13 +181,22 @@ main() {
 
     log_info "Scanning repositories in: $REPO_ROOT\n"
 
-    # Find all git repositories
+    # Find all git repositories and process them
     local repo_count=0
     local initialized_count=0
     local already_init_count=0
     local failed_count=0
 
+    # Create temp file to store repository paths
+    local temp_repos=$(mktemp)
+    trap "rm -f '$temp_repos'" EXIT
+
+    # Find all repositories and store in temp file
+    find "$REPO_ROOT" -type d -name "*.git" 2>/dev/null > "$temp_repos"
+
+    # Process each repository
     while IFS= read -r repo_path; do
+        [ -z "$repo_path" ] && continue  # Skip empty lines
         ((repo_count++))
 
         # Check if repo has commits
@@ -205,7 +216,11 @@ main() {
                 ((failed_count++))
             fi
         fi
-    done < <(find "$REPO_ROOT" -type d -name "*.git" 2>/dev/null)
+    done < "$temp_repos"
+
+    # Cleanup temp file
+    rm -f "$temp_repos"
+    trap - EXIT
 
     # Summary
     echo ""

@@ -150,7 +150,7 @@ echo -e "   Then push to your Gitea repository\n"
 echo -e "3. Configure repository secrets:"
 echo -e "   • Go to Repository → Settings → Secrets"
 echo -e "   • Add ${CYAN}ANTHROPIC_API_KEY${NC}"
-echo -e "   • Add ${CYAN}GITEA_SERVER_URL${NC} (default: http://localhost:3001)\n"
+echo -e "   • Add ${CYAN}QMS_SERVER_URL${NC} (default: http://localhost:3001)\n"
 
 echo -e "4. Test the assistant:"
 echo -e "   • Create an issue"

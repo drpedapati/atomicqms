@@ -381,7 +381,7 @@ Each template is a separate repository marked as a template.
 1. Configure repository secrets:
    - Go to Settings → Secrets
    - Add `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
-   - Add `GITEA_SERVER_URL` (e.g., http://localhost:3001)
+   - Add `QMS_SERVER_URL` (e.g., http://localhost:3001)
 
 2. Verify Actions are enabled:
    - Go to repository Actions tab
@@ -435,7 +435,7 @@ After creating a repository from the template:
 1. **Configure Secrets** (Required for AI assistant)
    - Settings → Secrets
    - Add `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
-   - Add `GITEA_SERVER_URL`
+   - Add `QMS_SERVER_URL`
 
 2. **Customize Repository**
    - Update README.md with project-specific information
