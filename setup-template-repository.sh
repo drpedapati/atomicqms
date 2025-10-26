@@ -44,10 +44,16 @@ echo -e "${GREEN}✓ Connected to Gitea${NC}\n"
 
 # Check 3: Get Gitea credentials
 echo -e "${BLUE}[3/7] Gitea Authentication${NC}"
-echo -e "${CYAN}Please provide your Gitea credentials:${NC}"
-read -p "Username: " GITEA_USER
-read -sp "Password or Token: " GITEA_TOKEN
-echo ""
+
+# Check for environment variables first
+if [ -n "$GITEA_USER" ] && [ -n "$GITEA_TOKEN" ]; then
+    echo -e "${CYAN}Using credentials from environment variables${NC}"
+else
+    echo -e "${CYAN}Please provide your Gitea credentials:${NC}"
+    read -p "Username: " GITEA_USER
+    read -sp "Password or Token: " GITEA_TOKEN
+    echo ""
+fi
 
 # Validate credentials
 if ! curl -s -u "$GITEA_USER:$GITEA_TOKEN" "$GITEA_URL/api/v1/user" > /dev/null 2>&1; then
@@ -130,9 +136,21 @@ Includes:
     echo -e "${GREEN}  ✓ Files committed${NC}"
 fi
 
-# Add remote
+# Add remote with credentials embedded
 git remote remove origin 2>/dev/null || true
-git remote add origin "$GITEA_URL/$GITEA_USER/$REPO_NAME.git"
+
+# Parse URL to embed credentials
+# Extract protocol and rest of URL
+if [[ "$GITEA_URL" =~ ^(https?://)(.*)$ ]]; then
+    PROTOCOL="${BASH_REMATCH[1]}"
+    REST="${BASH_REMATCH[2]}"
+    REMOTE_URL="${PROTOCOL}${GITEA_USER}:${GITEA_TOKEN}@${REST}/${GITEA_USER}/${REPO_NAME}.git"
+else
+    # Fallback if URL doesn't match expected format
+    REMOTE_URL="$GITEA_URL/$GITEA_USER/$REPO_NAME.git"
+fi
+
+git remote add origin "$REMOTE_URL"
 
 # Push
 if git push -u origin main --force 2>&1 | grep -q "error\|fatal"; then
