@@ -66,6 +66,33 @@ Early-stage biotech, academic labs, and healthcare startups that need regulatory
 - **SSH Git Access**: ssh://git@localhost:222
 - **Container Name**: atomicqms
 
+## Custom Branding
+
+AtomicQMS supports custom logo branding to replace the default Gitea teacup icon:
+
+1. **Add your logo files**:
+   ```bash
+   # Place your SVG logos in the public assets directory
+   cp /path/to/your/logo.svg gitea/public/assets/img/logo.svg
+   cp /path/to/your/full-logo.svg gitea/public/assets/img/logo-full.svg
+   ```
+
+2. **Restart the container**:
+   ```bash
+   docker compose restart
+   ```
+
+3. **Clear browser cache**: Press `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows/Linux)
+
+**How it works**: Files in `gitea/public/` override Gitea's embedded assets. The logo appears in the header, navigation, and as the site icon.
+
+**Requirements**:
+- Format: SVG (Scalable Vector Graphics)
+- Naming: Must be named `logo.svg` for the mini logo
+- Optional: Add `logo-full.svg` for larger branding areas
+
+See `gitea/public/README.md` for detailed customization options.
+
 ## Documentation
 
 For complete documentation, see the [docs](./docs) folder or visit the full documentation site.

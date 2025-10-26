@@ -1,10 +1,19 @@
-# Gitea data directory (ignore everything except gitea/conf/)
+# Gitea data directory (ignore everything except gitea/conf/ and public/ structure)
 gitea/*
 !gitea/gitea/
 gitea/gitea/*
 !gitea/gitea/conf/
 gitea/gitea/conf/*
 !gitea/gitea/conf/app.ini
+
+# Allow public directory structure and README, but ignore logo files
+!gitea/public/
+!gitea/public/README.md
+!gitea/public/assets/
+!gitea/public/assets/img/
+gitea/public/assets/img/*.svg
+gitea/public/assets/img/*.png
+!gitea/public/assets/img/.gitkeep
 
 # Docker volumes
 *.log
