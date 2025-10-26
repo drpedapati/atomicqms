@@ -59,6 +59,37 @@ The AI assistant understands QMS terminology, regulatory requirements, and maint
 - **Anthropic API Key**: [docs/ai-integration/gitea-actions-setup.md](./docs/ai-integration/gitea-actions-setup.md)
 - **Claude Code OAuth**: [docs/ai-integration/claude-code-oauth-setup.md](./docs/ai-integration/claude-code-oauth-setup.md)
 
+### Template Repository (Recommended)
+
+The easiest way to create new QMS repositories with AI assistant pre-configured is using the template repository feature:
+
+```bash
+./setup-template-repository.sh
+```
+
+This creates a reusable template repository (`atomicqms-template`) in your Gitea instance. When you create a new repository, simply select this template from the dropdown menu, and Gitea will automatically:
+
+- Copy all AI assistant files and configurations
+- Set up the complete QMS directory structure (SOPs, CAPAs, forms, training)
+- Substitute repository-specific variables (name, owner, dates)
+- Include sample SOP and CAPA templates
+- Initialize with proper .gitignore and documentation
+
+**Benefits:**
+- **User Control**: You choose when to use the template
+- **Variable Substitution**: Built-in Gitea feature replaces `$REPO_NAME`, `$REPO_OWNER`, `$YEAR-$MONTH-$DAY` automatically
+- **Multiple Templates**: Create different templates for different use cases (clinical, manufacturing, etc.)
+- **Zero Maintenance**: No background services required
+- **Preview Before Use**: See template contents before creating your repository
+
+**Usage:**
+1. Run setup script once: `./setup-template-repository.sh`
+2. When creating new repository: Select "atomicqms-template" from template dropdown
+3. Configure secrets in new repository (ANTHROPIC_API_KEY, GITEA_SERVER_URL)
+4. Start documenting!
+
+**📖 Complete Guide:** [docs/ai-integration/template-repository-setup.md](./docs/ai-integration/template-repository-setup.md)
+
 ###  Automatic Repository Initialization
 
 Want the AI assistant files added to every new repository automatically? Enable the auto-init service:

@@ -1,0 +1,47 @@
+# OS files
+.DS_Store
+Thumbs.db
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+~$*
+
+# Logs
+*.log
+
+# Build artifacts
+dist/
+build/
+*.pdf
+*.docx
+
+# Sensitive data (never commit!)
+*secret*
+*password*
+*credentials*
+.env
+.env.local
+
+# Node modules (if using any tooling)
+node_modules/
+
+# Python cache (if using any tooling)
+__pycache__/
+*.pyc
+*.pyo
+
+# Review artifacts
+.review/
+*.review
+
+# Keep structure
+!.gitkeep
