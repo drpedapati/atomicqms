@@ -1,0 +1,51 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="page-content home">
+	<div class="tw-mb-8 tw-px-8">
+		<div class="center">
+			<img class="logo" width="220" height="220" src="{{AssetUrlPrefix}}/img/logo.svg" alt="{{ctx.Locale.Tr "logo"}}">
+			<div class="hero">
+				<h1 class="ui icon header title tw-text-balance">
+					AtomicQMS: Git-Based Quality Management
+				</h1>
+				<h2 class="tw-text-balance">Containerized Quality Management for Agile Teams</h2>
+			</div>
+		</div>
+	</div>
+	<div class="ui stackable middle very relaxed page grid">
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-flame"}} {{ctx.Locale.Tr "startpage.install"}}
+			</h1>
+			<p class="large tw-text-balance">
+				Git-based version control for SOPs, CAPAs, and compliance documentation.
+			</p>
+		</div>
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-device-desktop"}} {{ctx.Locale.Tr "startpage.platform"}}
+			</h1>
+			<p class="large tw-text-balance">
+				Browser-based interface with pull request workflows and issue-based change control.
+			</p>
+		</div>
+	</div>
+	<div class="ui stackable middle very relaxed page grid">
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-rocket"}} {{ctx.Locale.Tr "startpage.lightweight"}}
+			</h1>
+			<p class="large tw-text-balance">
+				Lightweight containerized deployment with Docker Compose. No enterprise bloat.
+			</p>
+		</div>
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-code"}} {{ctx.Locale.Tr "startpage.license"}}
+			</h1>
+			<p class="large tw-text-balance">
+				Built on open-source <a target="_blank" rel="noopener noreferrer" href="https://github.com/go-gitea/gitea">Gitea</a> with custom QMS workflows and AI-assisted documentation.
+			</p>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

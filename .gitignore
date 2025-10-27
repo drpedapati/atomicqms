@@ -20,6 +20,11 @@ gitea/gitea/conf/*
 !gitea/gitea/public/assets/img/logo.svg
 !gitea/gitea/public/assets/img/logo-full.svg
 !gitea/gitea/public/assets/img/favicon.svg
+
+# Allow AtomicQMS custom homepage template (essential branding)
+!gitea/gitea/templates/
+!gitea/gitea/templates/home.tmpl
+
 # Docker volumes
 *.log
 
