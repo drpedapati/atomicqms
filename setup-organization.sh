@@ -37,13 +37,13 @@ CLAUDE_CODE_OAUTH_TOKEN=$(grep "^CLAUDE_CODE_OAUTH_TOKEN=" .env | cut -d'=' -f2-
 
 # Get admin credentials
 echo -e "${BLUE}[1/4] Gitea Authentication${NC}"
-echo -e "${YELLOW}Enter your Gitea admin username (default: admin):${NC}"
-read -r GITEA_USER
-GITEA_USER=${GITEA_USER:-admin}
 
-echo -e "${YELLOW}Enter your Gitea admin password:${NC}"
-read -s GITEA_PASSWORD
-echo
+# Use default credentials (consistent with setup-all.sh)
+GITEA_USER="${ATOMICQMS_ADMIN_USER:-admin}"
+GITEA_PASSWORD="${ATOMICQMS_ADMIN_PASSWORD:-atomicqms123}"
+
+echo -e "${CYAN}Using credentials: ${GITEA_USER} / atomicqms123${NC}"
+echo -e "${YELLOW}(Set ATOMICQMS_ADMIN_USER and ATOMICQMS_ADMIN_PASSWORD to override)${NC}"
 
 # Create organization
 echo -e "\n${BLUE}[2/4] Creating Organization${NC}"
