@@ -5,12 +5,16 @@
 # This script guides you through the complete AtomicQMS setup process
 # by calling individual setup scripts in the correct order.
 #
-# Usage: ./setup-all.sh [--minimal|--full]
+# Usage: ./setup-all.sh [--minimal|--full|--clean]
 #
 # Options:
 #   --minimal : Server + Admin user only (no AI, no GitHub OAuth)
 #   --full    : Complete setup including AI assistant and organization
+#   --clean   : Force clean installation (wipe all data first)
 #   (default) : Interactive - asks what you want to set up
+#
+# On repeated runs, the script will detect existing installations and
+# offer to either continue or perform a clean install.
 
 set -e
 
@@ -28,10 +32,13 @@ echo -e "${BLUE}========================================${NC}\n"
 
 # Parse arguments
 SETUP_MODE="interactive"
+FORCE_CLEAN="false"
 if [ "$1" == "--minimal" ]; then
     SETUP_MODE="minimal"
 elif [ "$1" == "--full" ]; then
     SETUP_MODE="full"
+elif [ "$1" == "--clean" ]; then
+    FORCE_CLEAN="true"
 fi
 
 # Check if Docker is running
@@ -39,6 +46,64 @@ if ! docker info > /dev/null 2>&1; then
     echo -e "${RED}✗ Docker is not running${NC}"
     echo "Please start Docker and try again"
     exit 1
+fi
+
+# Check for existing installation
+EXISTING_INSTALL="false"
+if [ -d "gitea/gitea" ] && [ -f "gitea/gitea/gitea.db" ]; then
+    EXISTING_INSTALL="true"
+fi
+
+# Detect if containers are already running with data
+if docker compose ps | grep -q "Up"; then
+    if [ "$EXISTING_INSTALL" == "true" ]; then
+        echo -e "${YELLOW}⚠ Warning: Existing AtomicQMS installation detected${NC}\n"
+        echo "Running setup again may cause conflicts because:"
+        echo "  - Admin user might already exist in database"
+        echo "  - Organization/repositories might already be created"
+        echo "  - Runner might already be registered"
+        echo ""
+        echo -e "${CYAN}What would you like to do?${NC}"
+        echo "1) Continue (skip existing steps)"
+        echo "2) Clean install (wipe database and start fresh)"
+        echo "3) Cancel"
+        echo ""
+        read -p "Choose [1-3]: " reset_choice
+
+        case $reset_choice in
+            1)
+                echo -e "\n${YELLOW}Continuing with existing installation...${NC}"
+                ;;
+            2)
+                echo -e "\n${RED}⚠ WARNING: This will delete ALL data!${NC}"
+                echo "  - All repositories will be deleted"
+                echo "  - All users will be deleted"
+                echo "  - All issues, PRs, and comments will be deleted"
+                echo "  - Configuration will be reset"
+                echo ""
+                read -p "Type 'DELETE' to confirm: " confirm
+
+                if [ "$confirm" != "DELETE" ]; then
+                    echo -e "${YELLOW}Cancelled${NC}"
+                    exit 0
+                fi
+
+                echo -e "\n${BLUE}Performing clean installation...${NC}"
+                docker compose down --volumes
+                rm -rf gitea/git gitea/gitea gitea/ssh runner-data
+                rm -f .env
+                echo -e "${GREEN}✓ Cleaned up existing installation${NC}\n"
+                ;;
+            3)
+                echo -e "${YELLOW}Setup cancelled${NC}"
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}Invalid choice${NC}"
+                exit 1
+                ;;
+        esac
+    fi
 fi
 
 # Determine setup mode
