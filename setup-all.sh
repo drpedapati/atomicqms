@@ -519,8 +519,8 @@ if [ "$SETUP_MODE" != "minimal" ]; then
     fi
 fi
 
-# Step 5: Organization Setup (ALL MODES - organization-first design)
-# Organization is default for collaborative QMS environments
+# Step 5: Template Repository Setup (ALL MODES - needed for QMS structure)
+# Template provides QMS directory structure and optional AI integration
 STEP_NUM="4"
 if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
     STEP_NUM="5"
@@ -532,7 +532,30 @@ if [ "$SETUP_MODE" != "minimal" ]; then
     fi
 fi
 
-echo -e "\n${BLUE}[Step ${STEP_NUM}/5] Setting up Organization...${NC}"
+echo -e "\n${BLUE}[Step ${STEP_NUM}/6] Setting up Template Repository...${NC}"
+
+# Check if template already exists
+if curl -s http://localhost:3001/api/v1/repos/admin/atomicqms-template 2>/dev/null | grep -q '"name":"atomicqms-template"'; then
+    echo -e "${GREEN}✓ Template repository already exists${NC}"
+else
+    echo -e "${YELLOW}Creating QMS template repository...${NC}\n"
+    ./setup-template-repository.sh
+fi
+
+# Step 6: Organization Setup (ALL MODES - organization-first design)
+# Organization is default for collaborative QMS environments
+STEP_NUM="5"
+if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+    STEP_NUM="6"
+fi
+if [ "$SETUP_MODE" != "minimal" ]; then
+    STEP_NUM="6"
+    if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+        STEP_NUM="6"
+    fi
+fi
+
+echo -e "\n${BLUE}[Step ${STEP_NUM}/6] Setting up Organization...${NC}"
 
 # Check if organization exists
 if curl -s http://localhost:3001/api/v1/orgs/atomicqms-lab 2>/dev/null | grep -q '"username":"atomicqms-lab"'; then

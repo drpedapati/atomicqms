@@ -25,15 +25,13 @@ if ! curl -s http://localhost:3001 > /dev/null; then
     exit 1
 fi
 
-# Load credentials from .env
-if [ ! -f .env ]; then
-    echo -e "${RED}Error: .env file not found${NC}"
-    echo "Run setup-claude-assistant.sh first to create .env"
-    exit 1
+# Load credentials from .env (optional for minimal setup)
+if [ -f .env ]; then
+    # Extract CLAUDE_CODE_OAUTH_TOKEN from .env (handle values with spaces)
+    CLAUDE_CODE_OAUTH_TOKEN=$(grep "^CLAUDE_CODE_OAUTH_TOKEN=" .env | cut -d'=' -f2- 2>/dev/null || echo "")
+else
+    CLAUDE_CODE_OAUTH_TOKEN=""
 fi
-
-# Extract CLAUDE_CODE_OAUTH_TOKEN from .env (handle values with spaces)
-CLAUDE_CODE_OAUTH_TOKEN=$(grep "^CLAUDE_CODE_OAUTH_TOKEN=" .env | cut -d'=' -f2-)
 
 # Get admin credentials
 echo -e "${BLUE}[1/4] Gitea Authentication${NC}"
@@ -78,25 +76,25 @@ else
     fi
 fi
 
-# Set organization-level secret
+# Set organization-level secret (optional - only if credentials available)
 echo -e "\n${BLUE}[3/4] Setting Organization-Level Secret${NC}"
 
-if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
-    echo -e "${RED}Error: CLAUDE_CODE_OAUTH_TOKEN not found in .env${NC}"
-    exit 1
-fi
+if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    SECRET_RESULT=$(curl -s -u "$GITEA_USER:$GITEA_PASSWORD" \
+      -X PUT "http://localhost:3001/api/v1/orgs/$ORG_NAME/actions/secrets/CLAUDE_CODE_OAUTH_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"data\":\"$CLAUDE_CODE_OAUTH_TOKEN\"}")
 
-SECRET_RESULT=$(curl -s -u "$GITEA_USER:$GITEA_PASSWORD" \
-  -X PUT "http://localhost:3001/api/v1/orgs/$ORG_NAME/actions/secrets/CLAUDE_CODE_OAUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"data\":\"$CLAUDE_CODE_OAUTH_TOKEN\"}")
-
-if echo "$SECRET_RESULT" | grep -q '"name":"CLAUDE_CODE_OAUTH_TOKEN"' || [ -z "$SECRET_RESULT" ]; then
-    echo -e "${GREEN}✓ Set CLAUDE_CODE_OAUTH_TOKEN secret at organization level${NC}"
+    if echo "$SECRET_RESULT" | grep -q '"name":"CLAUDE_CODE_OAUTH_TOKEN"' || [ -z "$SECRET_RESULT" ]; then
+        echo -e "${GREEN}✓ Set CLAUDE_CODE_OAUTH_TOKEN secret at organization level${NC}"
+    else
+        echo -e "${RED}✗ Failed to set organization secret${NC}"
+        echo "$SECRET_RESULT"
+        exit 1
+    fi
 else
-    echo -e "${RED}✗ Failed to set organization secret${NC}"
-    echo "$SECRET_RESULT"
-    exit 1
+    echo -e "${YELLOW}⊘ Skipping - no AI credentials in .env (minimal setup)${NC}"
+    echo -e "${YELLOW}  To add AI later: add credentials to .env and run ./upgrade.sh${NC}"
 fi
 
 # Transfer template repository to organization
