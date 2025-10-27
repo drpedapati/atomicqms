@@ -6,14 +6,15 @@ gitea/gitea/*
 gitea/gitea/conf/*
 !gitea/gitea/conf/app.ini
 
-# Allow public directory structure and README, but ignore logo files
+# Allow public directory structure and README
 !gitea/public/
 !gitea/public/README.md
 !gitea/public/assets/
 !gitea/public/assets/img/
-gitea/public/assets/img/*.svg
-gitea/public/assets/img/*.png
 !gitea/public/assets/img/.gitkeep
+# Allow AtomicQMS branding logos (essential to project identity)
+!gitea/public/assets/img/logo.svg
+!gitea/public/assets/img/logo-full.svg
 
 # Docker volumes
 *.log
