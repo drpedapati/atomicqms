@@ -54,13 +54,34 @@ docker compose up -d
 **Problem**: Trying to create admin user when it already exists.
 
 **Solution**:
+
+**Option A: Clean Install** (Recommended)
+```bash
+# Run setup script - it will detect existing installation
+./setup-all.sh
+
+# Choose option 2: "Clean install (wipe database and start fresh)"
+# Type DELETE to confirm
+# Script will wipe all data and start fresh
+```
+
+**Option B: Manual Cleanup**
+```bash
+# Stop containers and wipe data
+docker compose down --volumes
+rm -rf gitea/git gitea/gitea gitea/ssh runner-data
+rm -f .env
+
+# Start fresh
+./setup-all.sh
+```
+
+**Option C: Work with Existing User**
 ```bash
 # List existing users
 docker exec atomicqms gitea admin user list
 
-# If admin exists, either:
-# 1. Use existing admin account
-# 2. Change password:
+# Change password if needed:
 docker exec -u git atomicqms gitea admin user change-password \
   --username admin \
   --password 'NewPassword'
