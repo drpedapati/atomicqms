@@ -31,8 +31,25 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Export runner credentials to workflow env
+        shell: bash
+        run: |
+          if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
+            echo "CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$GITHUB_ENV"
+          fi
+
       - name: Run AtomicQMS AI Assistant
         uses: ./actions/claude-code-gitea-action
+        env:
+          # Provide credentials to the action runtime
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN || env.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY }}
+          # Use host.docker.internal to access Gitea from job containers
+          # Override with QMS_SERVER_URL secret for production
+          GITEA_SERVER_URL: ${{ secrets.QMS_SERVER_URL || 'http://host.docker.internal:3001' }}
         with:
           # Trigger configuration
           trigger_phrase: '@qms-assistant'
@@ -45,8 +62,8 @@ jobs:
 
           # Authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Try repository secret first, fall back to runner environment variable
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY || secrets.CLAUDE_CODE_OAUTH_TOKEN || env.ANTHROPIC_API_KEY || env.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN || env.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY }}
 
           # Git configuration
           claude_git_name: 'AtomicQMS Assistant'
@@ -96,8 +113,3 @@ jobs:
 
           # Environment
           experimental_allowed_domains: ''
-        env:
-          # Use host.docker.internal to access Gitea from job containers
-          # This allows containers to reach the host machine's ports
-          # In production, override with QMS_SERVER_URL secret (e.g., https://your-domain.com)
-          GITEA_SERVER_URL: ${{ secrets.QMS_SERVER_URL || 'http://host.docker.internal:3001' }}

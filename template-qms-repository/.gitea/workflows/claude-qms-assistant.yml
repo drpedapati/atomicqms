@@ -31,20 +31,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Export runner credentials
+      - name: Export runner credentials to workflow env
         shell: bash
         run: |
           # Promote runner environment variables into workflow context
-          # This allows ${{ env.* }} expressions to access credentials from runner-data/config.yaml
-          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+          if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
             echo "CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN" >> "$GITHUB_ENV"
           fi
-          if [ -n "$ANTHROPIC_API_KEY" ]; then
+          if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
             echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$GITHUB_ENV"
           fi
 
       - name: Run AtomicQMS AI Assistant
         uses: ./actions/claude-code-gitea-action
+        env:
+          # Credentials: Runner env vars are already available in container
+          # Export step above makes them available to ${{ env.* }} expressions
+          # But action reads from process.env directly, so just pass them through
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ env.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
+          # Use host.docker.internal to access Gitea from job containers
+          GITEA_SERVER_URL: 'http://host.docker.internal:3001'
         with:
           # Trigger configuration
           trigger_phrase: '@qms-assistant'
@@ -57,9 +64,7 @@ jobs:
 
           # Authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Try repository secrets first, fall back to runner environment variables
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY }}
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN || env.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Don't pass credentials via inputs - use env vars above
 
           # Git configuration
           claude_git_name: 'AtomicQMS Assistant'
@@ -109,8 +114,3 @@ jobs:
 
           # Environment
           experimental_allowed_domains: ''
-        env:
-          # Use host.docker.internal to access Gitea from job containers
-          # This allows containers to reach the host machine's ports
-          # In production, override with QMS_SERVER_URL secret (e.g., https://your-domain.com)
-          GITEA_SERVER_URL: ${{ secrets.QMS_SERVER_URL || 'http://host.docker.internal:3001' }}
