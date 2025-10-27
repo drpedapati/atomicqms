@@ -182,9 +182,9 @@ runs:
           echo "Installing Claude Code..."
           # Use non-interactive mode and add timeout
           export DEBIAN_FRONTEND=noninteractive
-          timeout 120 bash -c 'curl -fsSL https://claude.ai/install.sh | bash -s -- --non-interactive' || {
+          timeout 120 bash -c 'curl -fsSL https://claude.ai/install.sh | bash -s latest' || {
             echo "Installation failed or timed out, retrying with verbose output..."
-            timeout 120 bash -c 'curl -fsSL -v https://claude.ai/install.sh | bash -s -- --non-interactive'
+            timeout 120 bash -c 'curl -fsSL -v https://claude.ai/install.sh | bash -s latest'
           }
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         else
