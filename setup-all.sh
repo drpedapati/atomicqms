@@ -13,6 +13,11 @@
 #   --clean   : Force clean installation (wipe all data first)
 #   (default) : Interactive - asks what you want to set up
 #
+# Admin Password:
+#   - Press Enter at password prompt to use default: 'atomicqms123'
+#   - Or set: export ATOMICQMS_ADMIN_PASSWORD="your-password"
+#   - Or enter a custom password when prompted
+#
 # On repeated runs, the script will detect existing installations and
 # offer to either continue or perform a clean install.
 
@@ -145,9 +150,22 @@ if docker exec atomicqms gitea admin user list 2>/dev/null | grep -q admin; then
     echo -e "${GREEN}✓ Admin user already exists${NC}"
 else
     echo -e "${YELLOW}Admin user not found. Creating admin user...${NC}"
-    echo "Please enter admin password:"
-    read -s ADMIN_PASSWORD
-    echo
+
+    # Check for ATOMICQMS_ADMIN_PASSWORD environment variable
+    if [ -n "$ATOMICQMS_ADMIN_PASSWORD" ]; then
+        ADMIN_PASSWORD="$ATOMICQMS_ADMIN_PASSWORD"
+        echo -e "${CYAN}Using password from ATOMICQMS_ADMIN_PASSWORD environment variable${NC}"
+    else
+        echo "Please enter admin password (or press Enter for default 'atomicqms123'):"
+        read -s ADMIN_PASSWORD
+        echo
+
+        # Use default if empty
+        if [ -z "$ADMIN_PASSWORD" ]; then
+            ADMIN_PASSWORD="atomicqms123"
+            echo -e "${CYAN}Using default password: atomicqms123${NC}"
+        fi
+    fi
 
     docker exec -u git atomicqms gitea admin user create \
         --username admin \
@@ -156,7 +174,10 @@ else
         --admin \
         --must-change-password=false
 
-    echo -e "${GREEN}✓ Admin user created${NC}"
+    echo -e "${GREEN}✓ Admin user created (username: admin)${NC}"
+    if [ "$ADMIN_PASSWORD" == "atomicqms123" ]; then
+        echo -e "${YELLOW}⚠ Using default password. Change it after first login!${NC}"
+    fi
 fi
 
 # Step 3: AI Assistant Setup (if not minimal)
