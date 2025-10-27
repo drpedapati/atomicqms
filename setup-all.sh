@@ -31,8 +31,15 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  AtomicQMS Complete Setup${NC}"
+echo -e "${BLUE}  AtomicQMS Setup${NC}"
 echo -e "${BLUE}========================================${NC}\n"
+
+echo -e "${CYAN}What is AtomicQMS?${NC}"
+echo -e "  • Team-based QMS for regulated environments"
+echo -e "  • Git version control for SOPs, CAPA, change control"
+echo -e "  • AI-assisted documentation and compliance checking"
+echo -e "  • Organization-first: repos live in shared workspace"
+echo -e "  • Collaborative by design: built for quality teams\n"
 
 # Parse arguments first to determine what to check
 SETUP_MODE="interactive"
@@ -394,18 +401,18 @@ if [ "$SETUP_MODE" == "interactive" ]; then
     fi
 
     # Build menu based on what's available
-    echo "1) Minimal    - Just AtomicQMS server"
+    echo "1) Minimal    - Server + Organization (team workspace)"
 
     if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
-        echo "2) Standard   - Server + AI assistant"
+        echo "2) Standard   - Server + Organization + AI assistant"
     else
-        echo -e "2) Standard   - Server + AI assistant ${YELLOW}(requires AI credentials)${NC}"
+        echo -e "2) Standard   - Server + Organization + AI assistant ${YELLOW}(requires AI credentials)${NC}"
     fi
 
     if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
-        echo "3) Full       - Server + AI + Organization + GitHub OAuth (if available)"
+        echo "3) Full       - Server + Organization + AI + GitHub OAuth (if available)"
     else
-        echo -e "3) Full       - Server + AI + Organization + GitHub OAuth ${YELLOW}(requires AI credentials)${NC}"
+        echo -e "3) Full       - Server + Organization + AI + GitHub OAuth ${YELLOW}(requires AI credentials)${NC}"
     fi
 
     echo ""
@@ -512,21 +519,27 @@ if [ "$SETUP_MODE" != "minimal" ]; then
     fi
 fi
 
-# Step 5: Organization Setup (if full)
-if [ "$SETUP_MODE" == "full" ]; then
-    STEP_NUM="4"
+# Step 5: Organization Setup (ALL MODES - organization-first design)
+# Organization is default for collaborative QMS environments
+STEP_NUM="4"
+if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+    STEP_NUM="5"
+fi
+if [ "$SETUP_MODE" != "minimal" ]; then
+    STEP_NUM="5"
     if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
         STEP_NUM="5"
     fi
-    echo -e "\n${BLUE}[Step ${STEP_NUM}/5] Setting up Organization...${NC}"
+fi
 
-    # Check if organization exists
-    if curl -s http://localhost:3001/api/v1/orgs/atomicqms-lab 2>/dev/null | grep -q '"username":"atomicqms-lab"'; then
-        echo -e "${GREEN}✓ Organization 'atomicqms-lab' already exists${NC}"
-    else
-        echo -e "${YELLOW}Creating organization and setting up secrets...${NC}\n"
-        ./setup-organization.sh
-    fi
+echo -e "\n${BLUE}[Step ${STEP_NUM}/5] Setting up Organization...${NC}"
+
+# Check if organization exists
+if curl -s http://localhost:3001/api/v1/orgs/atomicqms-lab 2>/dev/null | grep -q '"username":"atomicqms-lab"'; then
+    echo -e "${GREEN}✓ Organization 'atomicqms-lab' already exists${NC}"
+else
+    echo -e "${YELLOW}Creating organization for team collaboration...${NC}\n"
+    ./setup-organization.sh
 fi
 
 # Summary
@@ -556,28 +569,29 @@ if [ "$SETUP_MODE" != "minimal" ]; then
     fi
 fi
 
-# Show organization status for full mode
-if [ "$SETUP_MODE" == "full" ]; then
-    echo -e "\n${BLUE}Organization Setup:${NC}"
-    echo -e "  ${GREEN}✓ atomicqms-lab organization ready${NC}"
-    echo -e "  📁 Create new repos from template: ${CYAN}atomicqms-lab/atomicqms-template${NC}"
-fi
+# Show organization status (all modes now include organization)
+echo -e "\n${BLUE}Organization Setup:${NC}"
+echo -e "  ${GREEN}✓ atomicqms-lab organization ready${NC}"
+echo -e "  📁 Create new repos from template: ${CYAN}atomicqms-lab/atomicqms-template${NC}"
+echo -e "  👥 Invite team members: ${CYAN}http://localhost:3001/atomicqms-lab${NC}"
 
 echo -e "\n${YELLOW}Next Steps:${NC}"
 if [ "$SETUP_MODE" == "minimal" ]; then
     echo "  1. Login at http://localhost:3001"
-    echo "  2. Create your first repository"
-    echo "  3. (Optional) Run ${CYAN}./setup-claude-assistant.sh${NC} to add AI assistant"
+    echo "  2. Go to atomicqms-lab organization"
+    echo "  3. Create repositories using template"
+    echo "  4. (Optional) Run ${CYAN}./upgrade.sh${NC} to add AI assistant"
 elif [ "$SETUP_MODE" == "standard" ]; then
     echo "  1. Login at http://localhost:3001"
-    echo "  2. Create a repository"
-    echo "  3. Create an issue and mention @qms-assistant"
-    echo "  4. (Optional) Run ${CYAN}./setup-organization.sh${NC} to create atomicqms-lab org"
+    echo "  2. Go to atomicqms-lab organization"
+    echo "  3. Create repository using template"
+    echo "  4. Mention @qms-assistant in an issue to test AI"
 else
     echo "  1. Login at http://localhost:3001"
-    echo "  2. Go to http://localhost:3001/atomicqms-lab"
-    echo "  3. Create new repository using atomicqms-template"
-    echo "  4. Mention @qms-assistant in an issue to test AI"
+    echo "  2. Go to atomicqms-lab organization"
+    echo "  3. Create repository using template"
+    echo "  4. Test AI: mention @qms-assistant in an issue"
+    echo "  5. Test SSO: users can login with GitHub"
 fi
 
 echo -e "\n${CYAN}📖 Documentation: ./docs/${NC}"

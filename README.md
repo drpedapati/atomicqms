@@ -22,8 +22,8 @@ The setup script automatically checks all prerequisites before starting:
 ./setup-all.sh
 
 # Or choose your setup level:
-./setup-all.sh --minimal    # Just server (no AI)
-./setup-all.sh --full       # Everything (server + AI + organization)
+./setup-all.sh --minimal    # Server + Organization
+./setup-all.sh --full       # Server + Organization + AI + GitHub OAuth
 ```
 
 If prerequisites are missing, you'll get clear instructions to fix them before the setup begins.
@@ -49,9 +49,9 @@ open http://localhost:3001
 
 | I want... | Run this | Time |
 |-----------|----------|------|
-| Just try AtomicQMS | `./setup-all.sh --minimal` | 2 min |
-| AtomicQMS + AI assistant | `./setup-all.sh` → choose "Standard" | 5 min |
-| Full team setup (recommended for labs) | `./setup-all.sh --full` | 8 min |
+| Try AtomicQMS with team workspace | `./setup-all.sh --minimal` | 2 min |
+| Team workspace + AI assistant | `./setup-all.sh` → choose "Standard" | 5 min |
+| Full setup with GitHub OAuth SSO | `./setup-all.sh --full` | 8 min |
 | Manual control of every step | See [SETUP.md](./SETUP.md) | 15-30 min |
 
 **💡 Start Simple, Upgrade Later:** You can always start with minimal and add features later using `./upgrade.sh` - see [UPGRADE.md](./UPGRADE.md)

@@ -47,6 +47,8 @@ ATOMICQMS_DATA_DIR=/data/atomicqms
 
 **YES - Both GitHub OAuth and AI Assistant can be safely added after minimal install.**
 
+**Note:** As of the latest version, **organization setup is included in ALL install modes** (minimal, standard, full). This guide focuses on adding the optional features (GitHub OAuth and AI Assistant) after initial setup.
+
 ### What Gets Modified
 
 | Feature | Changes | Safe on Busy Repo? |
@@ -196,6 +198,8 @@ Create an issue in the repository and comment: `@qms-assistant Hello!`
 
 ## Upgrading: Minimal → Standard → Full
 
+**Note:** All modes now include organization setup by default. These upgrade paths focus on adding optional features.
+
 You can upgrade step-by-step:
 
 ### Minimal → Standard (Add AI)
@@ -203,21 +207,15 @@ You can upgrade step-by-step:
 ```bash
 # 1. Add AI credentials to .env
 # 2. Run: ./setup-claude-assistant.sh
-# 3. Add workflow to repos as shown above
+# 3. Workflow already available via organization template
 ```
 
-### Standard → Full (Add Organization)
+### Standard → Full (Add GitHub OAuth)
 
 ```bash
-# 1. Ensure GitHub OAuth credentials in .env (optional but recommended)
-# 2. Run: ./setup-organization.sh
+# 1. Add GitHub OAuth credentials to .env
+# 2. Run: ./setup-github-oauth.sh
 ```
-
-**What organization setup does:**
-- Creates `atomicqms-lab` organization
-- Sets organization-level secret for AI credentials
-- Transfers template repository to organization
-- **Does NOT touch existing repos** - they stay with original owner
 
 ### Minimal → Full (All at once)
 
@@ -230,7 +228,7 @@ You can upgrade step-by-step:
 # 2. Run setup scripts in order:
 ./setup-github-oauth.sh
 ./setup-claude-assistant.sh
-./setup-organization.sh
+# (Organization already set up in all modes)
 ```
 
 ---
@@ -339,9 +337,9 @@ Workflow files must exist in each repo where you want AI. Options:
 |--------|-----------|----------------|----------|------------|
 | Add GitHub OAuth | Yes (auth table) | No | ~3 sec | Yes (delete auth) |
 | Add AI Assistant | No | No* | None | Yes (stop runner) |
-| Add Organization | Yes (org table) | No** | None | Hard (can't delete) |
 
-\* Workflow must be added per-repo to use AI
-\** Existing repos stay with owner, not auto-transferred
+\* Workflow available via organization template, or add manually per-repo
+
+**Note:** Organization is now included in ALL install modes by default.
 
 **BOTTOM LINE:** Both GitHub OAuth and AI Assistant are **100% safe to add post-install**, even on busy systems with active users and repositories.
