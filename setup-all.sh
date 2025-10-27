@@ -41,15 +41,21 @@ if [ "$1" == "--minimal" ]; then
     SETUP_MODE="minimal"
 elif [ "$1" == "--full" ]; then
     SETUP_MODE="full"
+elif [ "$1" == "--standard" ]; then
+    SETUP_MODE="standard"
 elif [ "$1" == "--clean" ]; then
     FORCE_CLEAN="true"
 fi
 
-# If interactive mode, we'll check prerequisites after user selects setup mode
-# For non-interactive modes, determine now what we'll need
-NEEDS_AI_CREDENTIALS="false"
-if [ "$SETUP_MODE" == "full" ]; then
-    NEEDS_AI_CREDENTIALS="true"
+# For interactive mode, we need to check if AI credentials exist
+# to inform the user upfront what modes are available
+CHECK_AI_CREDENTIALS="false"
+AI_CREDENTIALS_AVAILABLE="false"  # Default to false
+
+if [ "$SETUP_MODE" == "interactive" ]; then
+    CHECK_AI_CREDENTIALS="true"
+elif [ "$SETUP_MODE" == "standard" ] || [ "$SETUP_MODE" == "full" ]; then
+    CHECK_AI_CREDENTIALS="true"
 fi
 
 #============================================
@@ -151,9 +157,8 @@ else
     PREREQ_FAILED="true"
 fi
 
-# Check 7: AI credentials (only for standard/full mode)
-# For interactive mode, we'll check this later after user selects mode
-if [ "$NEEDS_AI_CREDENTIALS" == "true" ]; then
+# Check 7: AI credentials (check for interactive/standard/full modes)
+if [ "$CHECK_AI_CREDENTIALS" == "true" ]; then
     echo -n "  Claude AI credentials.... "
     HAS_OAUTH_TOKEN="false"
     HAS_API_KEY="false"
@@ -178,14 +183,22 @@ if [ "$NEEDS_AI_CREDENTIALS" == "true" ]; then
 
     if [ "$HAS_OAUTH_TOKEN" == "true" ] || [ "$HAS_API_KEY" == "true" ]; then
         echo -e "${GREEN}✓${NC}"
+        AI_CREDENTIALS_AVAILABLE="true"
     else
-        echo -e "${RED}✗${NC}"
-        echo -e "    ${RED}Error: No Claude AI credentials found${NC}"
-        echo -e "    ${YELLOW}Full setup requires either:${NC}"
-        echo -e "    ${YELLOW}  • CLAUDE_CODE_OAUTH_TOKEN (from https://claude.ai/code)${NC}"
-        echo -e "    ${YELLOW}  • ANTHROPIC_API_KEY (from https://console.anthropic.com)${NC}"
-        echo -e "    ${YELLOW}Set via environment variable or add to .env file${NC}"
-        PREREQ_FAILED="true"
+        if [ "$SETUP_MODE" == "interactive" ]; then
+            # For interactive mode, just note it - user can still choose minimal
+            echo -e "${YELLOW}⚠ (not found - minimal mode only)${NC}"
+            AI_CREDENTIALS_AVAILABLE="false"
+        else
+            # For standard/full modes, this is an error
+            echo -e "${RED}✗${NC}"
+            echo -e "    ${RED}Error: No Claude AI credentials found${NC}"
+            echo -e "    ${YELLOW}Setup mode '${SETUP_MODE}' requires either:${NC}"
+            echo -e "    ${YELLOW}  • CLAUDE_CODE_OAUTH_TOKEN (from https://claude.ai/code)${NC}"
+            echo -e "    ${YELLOW}  • ANTHROPIC_API_KEY (from https://console.anthropic.com)${NC}"
+            echo -e "    ${YELLOW}Set via environment variable or add to .env file${NC}"
+            PREREQ_FAILED="true"
+        fi
     fi
 fi
 
@@ -279,66 +292,42 @@ fi
 # Determine setup mode
 if [ "$SETUP_MODE" == "interactive" ]; then
     echo -e "${CYAN}What would you like to set up?${NC}\n"
-    echo "1) Minimal    - Just AtomicQMS server (no AI assistant)"
-    echo "2) Standard   - Server + AI assistant"
-    echo "3) Full       - Server + AI + GitHub OAuth + Organization"
-    echo ""
-    read -p "Choose [1-3]: " choice
 
-    case $choice in
-        1) SETUP_MODE="minimal" ;;
-        2) SETUP_MODE="standard" ;;
-        3) SETUP_MODE="full" ;;
-        *)
-            echo -e "${RED}Invalid choice${NC}"
-            exit 1
-            ;;
-    esac
-
-    # For standard/full mode, verify AI credentials
-    if [ "$SETUP_MODE" == "standard" ] || [ "$SETUP_MODE" == "full" ]; then
+    if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
+        # All options available
+        echo "1) Minimal    - Just AtomicQMS server (no AI assistant)"
+        echo "2) Standard   - Server + AI assistant"
+        echo "3) Full       - Server + AI + GitHub OAuth + Organization"
         echo ""
-        echo -e "${BLUE}Checking AI credentials...${NC}"
+        read -p "Choose [1-3]: " choice
 
-        HAS_OAUTH_TOKEN="false"
-        HAS_API_KEY="false"
+        case $choice in
+            1) SETUP_MODE="minimal" ;;
+            2) SETUP_MODE="standard" ;;
+            3) SETUP_MODE="full" ;;
+            *)
+                echo -e "${RED}Invalid choice${NC}"
+                exit 1
+                ;;
+        esac
+    else
+        # Only minimal mode available
+        echo -e "${YELLOW}⚠ No AI credentials detected${NC}"
+        echo ""
+        echo "1) Minimal    - Just AtomicQMS server (no AI assistant)"
+        echo ""
+        echo -e "${YELLOW}Note: To enable AI features, set credentials first:${NC}"
+        echo -e "  • CLAUDE_CODE_OAUTH_TOKEN (from https://claude.ai/code)"
+        echo -e "  • ANTHROPIC_API_KEY (from https://console.anthropic.com)"
+        echo ""
+        read -p "Continue with minimal setup? [y/N]: " confirm
 
-        # Check environment variables
-        if [ -n "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
-            HAS_OAUTH_TOKEN="true"
-        fi
-        if [ -n "${ANTHROPIC_API_KEY}" ]; then
-            HAS_API_KEY="true"
+        if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+            echo -e "${YELLOW}Setup cancelled. Set credentials and try again.${NC}"
+            exit 0
         fi
 
-        # Check .env file
-        if [ -f ".env" ]; then
-            if grep -q "^CLAUDE_CODE_OAUTH_TOKEN=" .env && [ -n "$(grep "^CLAUDE_CODE_OAUTH_TOKEN=" .env | cut -d'=' -f2-)" ]; then
-                HAS_OAUTH_TOKEN="true"
-            fi
-            if grep -q "^ANTHROPIC_API_KEY=" .env && [ -n "$(grep "^ANTHROPIC_API_KEY=" .env | cut -d'=' -f2-)" ]; then
-                HAS_API_KEY="true"
-            fi
-        fi
-
-        if [ "$HAS_OAUTH_TOKEN" == "false" ] && [ "$HAS_API_KEY" == "false" ]; then
-            echo -e "${RED}✗ No Claude AI credentials found${NC}\n"
-            echo -e "${YELLOW}${SETUP_MODE^} mode requires AI credentials. You have two options:${NC}\n"
-            echo -e "${CYAN}Option 1: Claude Code OAuth Token (Recommended)${NC}"
-            echo "  • Get from: https://claude.ai/code"
-            echo "  • Requires: Claude Max subscription"
-            echo "  • Set via: export CLAUDE_CODE_OAUTH_TOKEN='sk-ant-oat01-...'"
-            echo ""
-            echo -e "${CYAN}Option 2: Anthropic API Key${NC}"
-            echo "  • Get from: https://console.anthropic.com"
-            echo "  • Requires: Pay-per-use API account"
-            echo "  • Set via: export ANTHROPIC_API_KEY='sk-ant-api03-...'"
-            echo ""
-            echo -e "${YELLOW}After setting credentials, run this script again.${NC}\n"
-            exit 1
-        else
-            echo -e "  ${GREEN}✓ AI credentials found${NC}"
-        fi
+        SETUP_MODE="minimal"
     fi
 fi
 
