@@ -237,13 +237,17 @@ docker compose up -d --build
 
 ## Custom Branding
 
-AtomicQMS supports custom logo branding to replace the default Gitea teacup icon:
+AtomicQMS includes custom logo branding that replaces the default Gitea teacup icon with the AtomicQMS logo.
+
+**Current branding**: AtomicQMS logo (atomic structure design) is pre-installed and displays automatically.
+
+**To customize with your own logo**:
 
 1. **Add your logo files**:
    ```bash
-   # Place your SVG logos in the public assets directory
-   cp /path/to/your/logo.svg gitea/public/assets/img/logo.svg
-   cp /path/to/your/full-logo.svg gitea/public/assets/img/logo-full.svg
+   # Place your SVG logos in the Gitea custom assets directory
+   cp /path/to/your/logo.svg gitea/gitea/public/assets/img/logo.svg
+   cp /path/to/your/logo.svg gitea/gitea/public/assets/img/favicon.svg
    ```
 
 2. **Restart the container**:
@@ -253,14 +257,14 @@ AtomicQMS supports custom logo branding to replace the default Gitea teacup icon
 
 3. **Clear browser cache**: Press `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows/Linux)
 
-**How it works**: Files in `gitea/public/` override Gitea's embedded assets. The logo appears in the header, navigation, and as the site icon.
+**How it works**: Files in `gitea/gitea/public/` (which maps to `/data/gitea/public/` in the container, where `GITEA_CUSTOM=/data/gitea`) override Gitea's embedded assets. The logo appears in the header, navigation, and as the site icon.
 
 **Requirements**:
 - Format: SVG (Scalable Vector Graphics)
-- Naming: Must be named `logo.svg` for the mini logo
-- Optional: Add `logo-full.svg` for larger branding areas
+- Naming: Must be named `logo.svg` and `favicon.svg`
+- Path: Must be in `gitea/gitea/public/assets/img/` (not `gitea/public/`)
 
-See `gitea/public/README.md` for detailed customization options.
+See `gitea/public/README.md` for additional customization options.
 
 ## Documentation
 

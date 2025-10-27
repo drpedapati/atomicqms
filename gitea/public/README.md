@@ -1,28 +1,29 @@
-# Custom AtomicQMS Logos
+# Custom AtomicQMS Public Assets
 
-This directory contains custom logo files that override Gitea's default branding.
+This directory provides a place for custom public assets that can be served by Gitea.
 
-## Logo Files
+**Note**: This is NOT the correct location for custom logos. For custom branding, see the section below.
 
-Located in `public/assets/img/`:
+## Custom Logo Location (IMPORTANT)
 
-- **`logo.svg`** - Mini logo (replaces the Gitea teacup icon)
-  - Used in the header, navigation, and as the site icon
-  - Source: `atomicqms-mini-logo.svg`
+Custom logos must be placed in `gitea/gitea/public/assets/img/` (NOT this directory).
 
-- **`logo-full.svg`** - Full logo
-  - Available for larger branding areas if needed
-  - Source: `atomicqms-full-logo.svg`
+**Correct paths**:
+- `gitea/gitea/public/assets/img/logo.svg` → `/data/gitea/public/assets/img/logo.svg` in container
+- `gitea/gitea/public/assets/img/favicon.svg` → `/data/gitea/public/assets/img/favicon.svg` in container
 
-## How It Works
+**Why this location?**
+- Docker mounts: `./gitea:/data`
+- Gitea's `GITEA_CUSTOM` path: `/data/gitea` (default)
+- Custom assets must be in `<GITEA_CUSTOM>/public/` = `/data/gitea/public/`
+- This maps to `gitea/gitea/public/` on the host
 
-The docker-compose configuration mounts `./gitea:/data`, which means:
+**Current AtomicQMS Logos**:
+- `gitea/gitea/public/assets/img/logo.svg` - AtomicQMS mini logo (atomic structure)
+- `gitea/gitea/public/assets/img/logo-full.svg` - AtomicQMS full logo
+- `gitea/gitea/public/assets/img/favicon.svg` - Site icon
 
-- `gitea/public/assets/img/logo.svg` → `/data/public/assets/img/logo.svg` in container
-- Gitea's `GITEA_CUSTOM` path is `/data/gitea` (the default)
-- Custom assets in `/data/public/` override embedded assets
-
-This allows the stock `gitea/gitea:latest` Docker image to use custom branding without modification.
+These files ARE tracked in Git as they are essential to the AtomicQMS brand identity.
 
 ## Updating Logos
 
@@ -30,8 +31,9 @@ To change logos in the future:
 
 1. Replace the SVG files:
    ```bash
-   cp /path/to/new-mini-logo.svg gitea/public/assets/img/logo.svg
-   cp /path/to/new-full-logo.svg gitea/public/assets/img/logo-full.svg
+   cp /path/to/new-mini-logo.svg gitea/gitea/public/assets/img/logo.svg
+   cp /path/to/new-mini-logo.svg gitea/gitea/public/assets/img/favicon.svg
+   cp /path/to/new-full-logo.svg gitea/gitea/public/assets/img/logo-full.svg
    ```
 
 2. Restart the container:
