@@ -54,6 +54,8 @@ open http://localhost:3001
 | Full team setup (recommended for labs) | `./setup-all.sh --full` | 8 min |
 | Manual control of every step | See [SETUP.md](./SETUP.md) | 15-30 min |
 
+**💡 Start Simple, Upgrade Later:** You can always start with minimal and add features later using `./upgrade.sh` - see [UPGRADE.md](./UPGRADE.md)
+
 ## Architecture & Philosophy
 
 Every AtomicQMS runs as a micro-deployed container that operates independently or within a fleet of other instances. This modular structure allows teams to spin up process-specific QMS modules—"Atomic Units"—for distinct workflows (e.g., assay validation, design control, analytical testing). Each unit retains its own change history, approvals, and compliance metadata while maintaining Git-level audit integrity and traceability.
