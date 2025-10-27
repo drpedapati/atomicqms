@@ -17,14 +17,25 @@ All code changes are complete and pushed to GitHub. The integration is ready for
 
 ### Step 1: Run Organization Setup Script
 
+**For OAuth users (GitHub authentication)**, use the token-based script:
+
 ```bash
 cd /Users/ernie/Documents/Sandbox/atomicqms-claude-integration
-./setup-organization.sh
+./setup-organization-token.sh
 ```
 
-**You'll be prompted for**:
-- Gitea admin username (default: admin)
-- Gitea admin password
+**Before running**, create a Gitea Personal Access Token:
+1. Go to http://localhost:3001/user/settings/applications
+2. Click "Generate New Token"
+3. Token Name: `atomicqms-setup`
+4. Select scopes: `admin:org`, `write:repository`, `read:user`
+5. Click "Generate Token" and copy it
+
+**Alternative: For local admin users with password**:
+
+```bash
+./setup-organization.sh
+```
 
 **The script will**:
 1. Create `atomicqms-lab` organization
