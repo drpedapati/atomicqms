@@ -45,15 +45,17 @@ echo -e "${GREEN}✓ Connected to Gitea${NC}\n"
 # Check 3: Get Gitea credentials
 echo -e "${BLUE}[3/7] Gitea Authentication${NC}"
 
-# Check for environment variables first
-if [ -n "$GITEA_USER" ] && [ -n "$GITEA_TOKEN" ]; then
-    echo -e "${CYAN}Using credentials from environment variables${NC}"
-else
-    echo -e "${CYAN}Please provide your Gitea credentials:${NC}"
-    read -p "Username: " GITEA_USER
-    read -sp "Password or Token: " GITEA_TOKEN
-    echo ""
+# Use default credentials (consistent with setup-all.sh)
+if [ -z "$GITEA_USER" ]; then
+    GITEA_USER="${ATOMICQMS_ADMIN_USER:-admin}"
 fi
+
+if [ -z "$GITEA_TOKEN" ]; then
+    GITEA_TOKEN="${ATOMICQMS_ADMIN_PASSWORD:-atomicqms123}"
+fi
+
+echo -e "${CYAN}Using credentials: ${GITEA_USER} / atomicqms123${NC}"
+echo -e "${YELLOW}(Set ATOMICQMS_ADMIN_USER and ATOMICQMS_ADMIN_PASSWORD to override)${NC}"
 
 # Validate credentials
 if ! curl -s -u "$GITEA_USER:$GITEA_TOKEN" "$GITEA_URL/api/v1/user" > /dev/null 2>&1; then
