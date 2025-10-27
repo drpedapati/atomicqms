@@ -13,7 +13,9 @@ services:
     networks:
       - gitea
     volumes:
-      - ./gitea:/data
+      # Data directory - configurable via ATOMICQMS_DATA_DIR in .env
+      # Default: ./gitea (stores ALL repos, database, users, LFS, SSH keys)
+      - ${ATOMICQMS_DATA_DIR:-./gitea}:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
@@ -29,7 +31,9 @@ services:
     networks:
       - gitea
     volumes:
-      - ./runner-data:/data
+      # Runner data directory - configurable via ATOMICQMS_RUNNER_DATA_DIR in .env
+      # Stores: workflow cache, logs, runner config
+      - ${ATOMICQMS_RUNNER_DATA_DIR:-./runner-data}:/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       # Use host.docker.internal to access Gitea via published port

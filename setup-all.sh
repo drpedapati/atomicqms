@@ -128,18 +128,43 @@ else
     echo -e "${GREEN}✓${NC}"
 fi
 
-# Check 5: Disk space (need at least 2GB free)
+# Check 5: Data directory location and disk space
+# Load data directory from .env or use default
+DATA_DIR="./gitea"
+if [ -f ".env" ] && grep -q "^ATOMICQMS_DATA_DIR=" .env; then
+    DATA_DIR=$(grep "^ATOMICQMS_DATA_DIR=" .env | cut -d'=' -f2-)
+fi
+
+echo -n "  Data directory........... "
+# Resolve to absolute path for display
+if [[ "$DATA_DIR" = /* ]]; then
+    ABS_DATA_DIR="$DATA_DIR"
+else
+    ABS_DATA_DIR="$(cd "$(dirname "$DATA_DIR")" 2>/dev/null && pwd)/$(basename "$DATA_DIR")" || ABS_DATA_DIR="$DATA_DIR"
+fi
+
+echo -e "${CYAN}$ABS_DATA_DIR${NC}"
+
+# Check disk space at data directory location
 echo -n "  Disk space (min 2GB)..... "
 if command -v df > /dev/null 2>&1; then
+    # Check space where data will be stored
+    CHECK_DIR="$DATA_DIR"
+    if [ ! -d "$CHECK_DIR" ]; then
+        # If data dir doesn't exist yet, check parent directory
+        CHECK_DIR="$(dirname "$DATA_DIR")"
+    fi
+
     # Get available space in KB, works on both macOS and Linux
-    AVAILABLE_KB=$(df -k . | tail -1 | awk '{print $4}')
+    AVAILABLE_KB=$(df -k "$CHECK_DIR" 2>/dev/null | tail -1 | awk '{print $4}')
     AVAILABLE_GB=$((AVAILABLE_KB / 1024 / 1024))
 
     if [ "$AVAILABLE_GB" -ge 2 ]; then
         echo -e "${GREEN}✓ (${AVAILABLE_GB}GB available)${NC}"
     else
         echo -e "${RED}✗${NC}"
-        echo -e "    ${RED}Error: Only ${AVAILABLE_GB}GB available (need at least 2GB)${NC}"
+        echo -e "    ${RED}Error: Only ${AVAILABLE_GB}GB available at data location (need at least 2GB)${NC}"
+        echo -e "    ${YELLOW}Data directory: $ABS_DATA_DIR${NC}"
         PREREQ_FAILED="true"
     fi
 else

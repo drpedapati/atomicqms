@@ -2,6 +2,47 @@
 
 This guide shows **exactly** how to add features to an existing AtomicQMS installation, even with active repositories and users.
 
+## CRITICAL: Where Is My Data Stored?
+
+**Before upgrading, understand where your data lives:**
+
+### Data Directory Location
+
+By default: `./gitea` (relative to docker-compose.yml)
+
+**This directory contains ALL your AtomicQMS data:**
+- Git repositories (`./gitea/git/repositories/`)
+- Database with users, issues, PRs (`./gitea/gitea/gitea.db`)
+- LFS files (`./gitea/git/lfs/`)
+- SSH keys (`./gitea/ssh/`)
+- Logs and sessions (`./gitea/gitea/`)
+
+**To find your data directory:**
+```bash
+# Check your configuration
+grep ATOMICQMS_DATA_DIR .env
+
+# Or check the default
+docker inspect atomicqms | grep "Source.*gitea"
+```
+
+**To change data directory location** (must do BEFORE first run):
+```bash
+# In .env file:
+ATOMICQMS_DATA_DIR=/path/to/your/data
+
+# Example for production:
+ATOMICQMS_DATA_DIR=/data/atomicqms
+```
+
+⚠️ **WARNING:** Moving data directory after installation requires:
+1. Stop containers: `docker compose down`
+2. Move entire directory: `mv ./gitea /new/location`
+3. Update .env: `ATOMICQMS_DATA_DIR=/new/location`
+4. Restart: `docker compose up -d`
+
+---
+
 ## Can I Add Features Later?
 
 **YES - Both GitHub OAuth and AI Assistant can be safely added after minimal install.**
