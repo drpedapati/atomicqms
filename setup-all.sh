@@ -50,12 +50,20 @@ fi
 # For interactive mode, we need to check if AI credentials exist
 # to inform the user upfront what modes are available
 CHECK_AI_CREDENTIALS="false"
+CHECK_GITHUB_OAUTH="false"
 AI_CREDENTIALS_AVAILABLE="false"  # Default to false
+GITHUB_OAUTH_AVAILABLE="false"    # Default to false
 
 if [ "$SETUP_MODE" == "interactive" ]; then
     CHECK_AI_CREDENTIALS="true"
+    CHECK_GITHUB_OAUTH="true"
 elif [ "$SETUP_MODE" == "standard" ] || [ "$SETUP_MODE" == "full" ]; then
     CHECK_AI_CREDENTIALS="true"
+fi
+
+# Full mode requires GitHub OAuth
+if [ "$SETUP_MODE" == "full" ]; then
+    CHECK_GITHUB_OAUTH="true"
 fi
 
 #============================================
@@ -192,17 +200,65 @@ if [ "$CHECK_AI_CREDENTIALS" == "true" ]; then
         else
             # For standard/full modes, this is an error
             echo -e "${RED}✗${NC}"
-            echo -e "    ${RED}Error: No Claude AI credentials found${NC}"
-            echo -e "    ${YELLOW}Setup mode '${SETUP_MODE}' requires either:${NC}"
-            echo -e "    ${YELLOW}  • CLAUDE_CODE_OAUTH_TOKEN (from https://claude.ai/code)${NC}"
-            echo -e "    ${YELLOW}  • ANTHROPIC_API_KEY (from https://console.anthropic.com)${NC}"
-            echo -e "    ${YELLOW}Set via environment variable or add to .env file${NC}"
+            echo -e "    ${RED}Error: No Claude AI credentials found${NC}\n"
+            echo -e "    ${YELLOW}To fix this, create a .env file with your credentials:${NC}\n"
+            echo -e "    ${CYAN}1. Copy the example file:${NC}"
+            echo -e "       ${CYAN}cp .env.example .env${NC}\n"
+            echo -e "    ${CYAN}2. Edit .env and add ONE of these:${NC}"
+            echo -e "       ${CYAN}CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...${NC}  (from https://claude.ai/code)"
+            echo -e "       ${CYAN}ANTHROPIC_API_KEY=sk-ant-api03-...${NC}       (from https://console.anthropic.com)\n"
+            echo -e "    ${CYAN}3. Run setup again:${NC}"
+            echo -e "       ${CYAN}./setup-all.sh --${SETUP_MODE}${NC}\n"
             PREREQ_FAILED="true"
         fi
     fi
 fi
 
-# Check 8: curl available (needed for API calls)
+# Check 8: GitHub OAuth credentials (for full setup)
+if [ "$CHECK_GITHUB_OAUTH" == "true" ]; then
+    echo -n "  GitHub OAuth (SSO)....... "
+    HAS_GITHUB_CLIENT_ID="false"
+    HAS_GITHUB_CLIENT_SECRET="false"
+
+    # Check environment variables
+    if [ -n "${GITHUB_CLIENT_ID}" ]; then
+        HAS_GITHUB_CLIENT_ID="true"
+    fi
+    if [ -n "${GITHUB_CLIENT_SECRET}" ]; then
+        HAS_GITHUB_CLIENT_SECRET="true"
+    fi
+
+    # Check .env file
+    if [ -f ".env" ]; then
+        if grep -q "^GITHUB_CLIENT_ID=" .env && [ -n "$(grep "^GITHUB_CLIENT_ID=" .env | cut -d'=' -f2- | grep -v xxxx)" ]; then
+            HAS_GITHUB_CLIENT_ID="true"
+        fi
+        if grep -q "^GITHUB_CLIENT_SECRET=" .env && [ -n "$(grep "^GITHUB_CLIENT_SECRET=" .env | cut -d'=' -f2- | grep -v xxxx)" ]; then
+            HAS_GITHUB_CLIENT_SECRET="true"
+        fi
+    fi
+
+    if [ "$HAS_GITHUB_CLIENT_ID" == "true" ] && [ "$HAS_GITHUB_CLIENT_SECRET" == "true" ]; then
+        echo -e "${GREEN}✓${NC}"
+        GITHUB_OAUTH_AVAILABLE="true"
+    else
+        if [ "$SETUP_MODE" == "interactive" ]; then
+            # For interactive mode, just note it - user can choose standard instead
+            echo -e "${YELLOW}⚠ (not found - SSO disabled)${NC}"
+            GITHUB_OAUTH_AVAILABLE="false"
+        else
+            # For full mode, this is a warning but not fatal
+            echo -e "${YELLOW}⚠${NC}"
+            echo -e "    ${YELLOW}GitHub OAuth not configured (Single Sign-On will be disabled)${NC}"
+            echo -e "    ${CYAN}To enable GitHub SSO, add to .env:${NC}"
+            echo -e "       ${CYAN}GITHUB_CLIENT_ID=Iv1.xxx${NC}       (from https://github.com/settings/developers)"
+            echo -e "       ${CYAN}GITHUB_CLIENT_SECRET=ghp_xxx${NC}    (OAuth App client secret)\n"
+            GITHUB_OAUTH_AVAILABLE="false"
+        fi
+    fi
+fi
+
+# Check 9: curl available (needed for API calls)
 echo -n "  curl utility............. "
 if command -v curl > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC}"
@@ -316,14 +372,17 @@ if [ "$SETUP_MODE" == "interactive" ]; then
         echo ""
         echo "1) Minimal    - Just AtomicQMS server (no AI assistant)"
         echo ""
-        echo -e "${YELLOW}Note: To enable AI features, set credentials first:${NC}"
-        echo -e "  • CLAUDE_CODE_OAUTH_TOKEN (from https://claude.ai/code)"
-        echo -e "  • ANTHROPIC_API_KEY (from https://console.anthropic.com)"
-        echo ""
+        echo -e "${YELLOW}Note: To enable AI features, create .env file with credentials:${NC}\n"
+        echo -e "  ${CYAN}1. Copy example:${NC} cp .env.example .env"
+        echo -e "  ${CYAN}2. Edit .env and add ONE of these:${NC}"
+        echo -e "     CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...  ${YELLOW}(from https://claude.ai/code)${NC}"
+        echo -e "     ANTHROPIC_API_KEY=sk-ant-api03-...       ${YELLOW}(from https://console.anthropic.com)${NC}"
+        echo -e "  ${CYAN}3. Run setup again${NC}\n"
         read -p "Continue with minimal setup? [y/N]: " confirm
 
         if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
-            echo -e "${YELLOW}Setup cancelled. Set credentials and try again.${NC}"
+            echo -e "\n${YELLOW}Setup cancelled.${NC}"
+            echo -e "After creating .env with credentials, run: ${CYAN}./setup-all.sh${NC}\n"
             exit 0
         fi
 
@@ -380,9 +439,26 @@ if [ "$SETUP_MODE" != "minimal" ]; then
     fi
 fi
 
-# Step 4: Organization Setup (if full)
+# Step 4: GitHub OAuth Setup (if full and credentials available)
+if [ "$SETUP_MODE" == "full" ] && [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+    echo -e "\n${BLUE}[Step 4/5] Setting up GitHub OAuth (Single Sign-On)...${NC}"
+
+    # Check if GitHub OAuth already configured
+    if docker exec atomicqms gitea admin auth list 2>/dev/null | grep -q "github"; then
+        echo -e "${GREEN}✓ GitHub OAuth already configured${NC}"
+    else
+        echo -e "${YELLOW}Configuring GitHub OAuth...${NC}\n"
+        ./setup-github-oauth.sh
+    fi
+fi
+
+# Step 5: Organization Setup (if full)
 if [ "$SETUP_MODE" == "full" ]; then
-    echo -e "\n${BLUE}[Step 4/4] Setting up Organization...${NC}"
+    STEP_NUM="4"
+    if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+        STEP_NUM="5"
+    fi
+    echo -e "\n${BLUE}[Step ${STEP_NUM}/5] Setting up Organization...${NC}"
 
     # Check if organization exists
     if curl -s http://localhost:3001/api/v1/orgs/atomicqms-lab 2>/dev/null | grep -q '"username":"atomicqms-lab"'; then
@@ -413,6 +489,12 @@ if [ "$SETUP_MODE" != "minimal" ]; then
 fi
 
 if [ "$SETUP_MODE" == "full" ]; then
+    if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+        echo -e "\n${BLUE}GitHub OAuth (SSO):${NC}"
+        echo -e "  ${GREEN}✓ GitHub Single Sign-On enabled${NC}"
+        echo -e "  🔐 Users can login with GitHub accounts"
+    fi
+
     echo -e "\n${BLUE}Organization Setup:${NC}"
     echo -e "  ${GREEN}✓ atomicqms-lab organization ready${NC}"
     echo -e "  📁 Create new repos from template: ${CYAN}atomicqms-lab/atomicqms-template${NC}"
