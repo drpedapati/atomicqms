@@ -572,6 +572,7 @@ echo -e "${GREEN}========================================${NC}\n"
 
 echo -e "🌐 Access AtomicQMS: ${CYAN}http://localhost:3001${NC}"
 echo -e "👤 Admin user: ${CYAN}admin${NC}"
+echo -e "🔑 Password: ${CYAN}atomicqms123${NC} ${YELLOW}(change after first login!)${NC}"
 
 # Show GitHub OAuth status for all modes
 if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
@@ -600,21 +601,21 @@ echo -e "  👥 Invite team members: ${CYAN}http://localhost:3001/atomicqms-lab$
 
 echo -e "\n${YELLOW}Next Steps:${NC}"
 if [ "$SETUP_MODE" == "minimal" ]; then
-    echo "  1. Login at http://localhost:3001"
-    echo "  2. Go to atomicqms-lab organization"
-    echo "  3. Create repositories using template"
-    echo "  4. (Optional) Run ${CYAN}./upgrade.sh${NC} to add AI assistant"
+    echo -e "  1. Login at http://localhost:3001"
+    echo -e "  2. Go to atomicqms-lab organization"
+    echo -e "  3. Create repositories using template"
+    echo -e "  4. (Optional) Run ${CYAN}./upgrade.sh${NC} to add AI assistant"
 elif [ "$SETUP_MODE" == "standard" ]; then
-    echo "  1. Login at http://localhost:3001"
-    echo "  2. Go to atomicqms-lab organization"
-    echo "  3. Create repository using template"
-    echo "  4. Mention @qms-assistant in an issue to test AI"
+    echo -e "  1. Login at http://localhost:3001"
+    echo -e "  2. Go to atomicqms-lab organization"
+    echo -e "  3. Create repository using template"
+    echo -e "  4. Mention @qms-assistant in an issue to test AI"
 else
-    echo "  1. Login at http://localhost:3001"
-    echo "  2. Go to atomicqms-lab organization"
-    echo "  3. Create repository using template"
-    echo "  4. Test AI: mention @qms-assistant in an issue"
-    echo "  5. Test SSO: users can login with GitHub"
+    echo -e "  1. Login at http://localhost:3001"
+    echo -e "  2. Go to atomicqms-lab organization"
+    echo -e "  3. Create repository using template"
+    echo -e "  4. Test AI: mention @qms-assistant in an issue"
+    echo -e "  5. Test SSO: users can login with GitHub"
 fi
 
 echo -e "\n${CYAN}📖 Documentation: ./docs/${NC}"
