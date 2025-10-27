@@ -349,45 +349,76 @@ fi
 if [ "$SETUP_MODE" == "interactive" ]; then
     echo -e "${CYAN}What would you like to set up?${NC}\n"
 
-    if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
-        # All options available
-        echo "1) Minimal    - Just AtomicQMS server (no AI assistant)"
-        echo "2) Standard   - Server + AI assistant"
-        echo "3) Full       - Server + AI + GitHub OAuth + Organization"
+    # Show what's available
+    if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ] && [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+        echo -e "${GREEN}✓ AI credentials found${NC}"
+        echo -e "${GREEN}✓ GitHub OAuth credentials found${NC}"
         echo ""
-        read -p "Choose [1-3]: " choice
-
-        case $choice in
-            1) SETUP_MODE="minimal" ;;
-            2) SETUP_MODE="standard" ;;
-            3) SETUP_MODE="full" ;;
-            *)
-                echo -e "${RED}Invalid choice${NC}"
-                exit 1
-                ;;
-        esac
+    elif [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
+        echo -e "${GREEN}✓ AI credentials found${NC}"
+        echo -e "${YELLOW}⚠ GitHub OAuth not configured${NC}"
+        echo ""
+    elif [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+        echo -e "${YELLOW}⚠ No AI credentials${NC}"
+        echo -e "${GREEN}✓ GitHub OAuth credentials found${NC}"
+        echo ""
     else
-        # Only minimal mode available
-        echo -e "${YELLOW}⚠ No AI credentials detected${NC}"
+        echo -e "${YELLOW}⚠ No AI credentials${NC}"
+        echo -e "${YELLOW}⚠ No GitHub OAuth credentials${NC}"
         echo ""
-        echo "1) Minimal    - Just AtomicQMS server (no AI assistant)"
-        echo ""
-        echo -e "${YELLOW}Note: To enable AI features, create .env file with credentials:${NC}\n"
-        echo -e "  ${CYAN}1. Copy example:${NC} cp .env.example .env"
-        echo -e "  ${CYAN}2. Edit .env and add ONE of these:${NC}"
-        echo -e "     CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...  ${YELLOW}(from https://claude.ai/code)${NC}"
-        echo -e "     ANTHROPIC_API_KEY=sk-ant-api03-...       ${YELLOW}(from https://console.anthropic.com)${NC}"
-        echo -e "  ${CYAN}3. Run setup again${NC}\n"
-        read -p "Continue with minimal setup? [y/N]: " confirm
-
-        if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
-            echo -e "\n${YELLOW}Setup cancelled.${NC}"
-            echo -e "After creating .env with credentials, run: ${CYAN}./setup-all.sh${NC}\n"
-            exit 0
-        fi
-
-        SETUP_MODE="minimal"
     fi
+
+    # Build menu based on what's available
+    echo "1) Minimal    - Just AtomicQMS server"
+
+    if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
+        echo "2) Standard   - Server + AI assistant"
+    else
+        echo -e "2) Standard   - Server + AI assistant ${YELLOW}(requires AI credentials)${NC}"
+    fi
+
+    if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
+        echo "3) Full       - Server + AI + Organization + GitHub OAuth (if available)"
+    else
+        echo -e "3) Full       - Server + AI + Organization + GitHub OAuth ${YELLOW}(requires AI credentials)${NC}"
+    fi
+
+    echo ""
+    read -p "Choose [1-3]: " choice
+
+    case $choice in
+        1)
+            SETUP_MODE="minimal"
+            ;;
+        2)
+            if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
+                SETUP_MODE="standard"
+            else
+                echo -e "\n${RED}Cannot select Standard mode - AI credentials required${NC}\n"
+                echo -e "${CYAN}To add AI credentials:${NC}"
+                echo -e "  1. cp .env.example .env"
+                echo -e "  2. Add: CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-... OR ANTHROPIC_API_KEY=sk-ant-api03-..."
+                echo -e "  3. Run: ./setup-all.sh\n"
+                exit 1
+            fi
+            ;;
+        3)
+            if [ "$AI_CREDENTIALS_AVAILABLE" == "true" ]; then
+                SETUP_MODE="full"
+            else
+                echo -e "\n${RED}Cannot select Full mode - AI credentials required${NC}\n"
+                echo -e "${CYAN}To add AI credentials:${NC}"
+                echo -e "  1. cp .env.example .env"
+                echo -e "  2. Add: CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-... OR ANTHROPIC_API_KEY=sk-ant-api03-..."
+                echo -e "  3. Run: ./setup-all.sh\n"
+                exit 1
+            fi
+            ;;
+        *)
+            echo -e "${RED}Invalid choice${NC}"
+            exit 1
+            ;;
+    esac
 fi
 
 echo -e "\n${BLUE}Setup Mode: ${SETUP_MODE}${NC}\n"
@@ -426,22 +457,9 @@ else
     echo -e "${YELLOW}  ⚠ Change password after first login!${NC}"
 fi
 
-# Step 3: AI Assistant Setup (if not minimal)
-if [ "$SETUP_MODE" != "minimal" ]; then
-    echo -e "\n${BLUE}[Step 3/4] Setting up AI Assistant...${NC}"
-
-    if [ ! -f .env ] || ! grep -q "CLAUDE_CODE_OAUTH_TOKEN" .env; then
-        echo -e "${YELLOW}Running AI assistant setup...${NC}\n"
-        ./setup-claude-assistant.sh
-    else
-        echo -e "${GREEN}✓ AI assistant already configured (found .env)${NC}"
-        echo -e "${YELLOW}To reconfigure, delete .env and run again${NC}"
-    fi
-fi
-
-# Step 4: GitHub OAuth Setup (if full and credentials available)
-if [ "$SETUP_MODE" == "full" ] && [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
-    echo -e "\n${BLUE}[Step 4/5] Setting up GitHub OAuth (Single Sign-On)...${NC}"
+# Step 3: GitHub OAuth Setup (if credentials available)
+if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+    echo -e "\n${BLUE}[Step 3/5] Setting up GitHub OAuth (Single Sign-On)...${NC}"
 
     # Check if GitHub OAuth already configured
     if docker exec atomicqms gitea admin auth list 2>/dev/null | grep -q "github"; then
@@ -449,6 +467,23 @@ if [ "$SETUP_MODE" == "full" ] && [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
     else
         echo -e "${YELLOW}Configuring GitHub OAuth...${NC}\n"
         ./setup-github-oauth.sh
+    fi
+fi
+
+# Step 4: AI Assistant Setup (if not minimal)
+if [ "$SETUP_MODE" != "minimal" ]; then
+    STEP_NUM="4"
+    if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+        STEP_NUM="4"
+    fi
+    echo -e "\n${BLUE}[Step ${STEP_NUM}/5] Setting up AI Assistant...${NC}"
+
+    if [ ! -f .env ] || ! grep -q "CLAUDE_CODE_OAUTH_TOKEN" .env; then
+        echo -e "${YELLOW}Running AI assistant setup...${NC}\n"
+        ./setup-claude-assistant.sh
+    else
+        echo -e "${GREEN}✓ AI assistant already configured (found .env)${NC}"
+        echo -e "${YELLOW}To reconfigure, delete .env and run again${NC}"
     fi
 fi
 
@@ -477,6 +512,14 @@ echo -e "${GREEN}========================================${NC}\n"
 echo -e "🌐 Access AtomicQMS: ${CYAN}http://localhost:3001${NC}"
 echo -e "👤 Admin user: ${CYAN}admin${NC}"
 
+# Show GitHub OAuth status for all modes
+if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
+    echo -e "\n${BLUE}GitHub OAuth (SSO):${NC}"
+    echo -e "  ${GREEN}✓ GitHub Single Sign-On enabled${NC}"
+    echo -e "  🔐 Users can login with GitHub accounts"
+fi
+
+# Show AI status for non-minimal modes
 if [ "$SETUP_MODE" != "minimal" ]; then
     echo -e "\n${BLUE}AI Assistant Status:${NC}"
     if [ -f .env ] && grep -q "CLAUDE_CODE_OAUTH_TOKEN" .env; then
@@ -488,13 +531,8 @@ if [ "$SETUP_MODE" != "minimal" ]; then
     fi
 fi
 
+# Show organization status for full mode
 if [ "$SETUP_MODE" == "full" ]; then
-    if [ "$GITHUB_OAUTH_AVAILABLE" == "true" ]; then
-        echo -e "\n${BLUE}GitHub OAuth (SSO):${NC}"
-        echo -e "  ${GREEN}✓ GitHub Single Sign-On enabled${NC}"
-        echo -e "  🔐 Users can login with GitHub accounts"
-    fi
-
     echo -e "\n${BLUE}Organization Setup:${NC}"
     echo -e "  ${GREEN}✓ atomicqms-lab organization ready${NC}"
     echo -e "  📁 Create new repos from template: ${CYAN}atomicqms-lab/atomicqms-template${NC}"
