@@ -34,7 +34,7 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  AtomicQMS Complete Setup${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
-# Parse arguments
+# Parse arguments first to determine what to check
 SETUP_MODE="interactive"
 FORCE_CLEAN="false"
 if [ "$1" == "--minimal" ]; then
@@ -45,11 +45,171 @@ elif [ "$1" == "--clean" ]; then
     FORCE_CLEAN="true"
 fi
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo -e "${RED}✗ Docker is not running${NC}"
-    echo "Please start Docker and try again"
+# If interactive mode, we'll check prerequisites after user selects setup mode
+# For non-interactive modes, determine now what we'll need
+NEEDS_AI_CREDENTIALS="false"
+if [ "$SETUP_MODE" == "full" ]; then
+    NEEDS_AI_CREDENTIALS="true"
+fi
+
+#============================================
+# Prerequisite Checking
+#============================================
+
+echo -e "${BLUE}Checking Prerequisites...${NC}\n"
+
+PREREQ_FAILED="false"
+
+# Check 1: Docker installed and running
+echo -n "  Docker daemon............ "
+if docker info > /dev/null 2>&1; then
+    echo -e "${GREEN}✓${NC}"
+else
+    echo -e "${RED}✗${NC}"
+    echo -e "    ${RED}Error: Docker is not running${NC}"
+    echo -e "    Please start Docker Desktop and try again"
+    PREREQ_FAILED="true"
+fi
+
+# Check 2: Docker Compose available
+echo -n "  Docker Compose........... "
+if docker compose version > /dev/null 2>&1; then
+    echo -e "${GREEN}✓${NC}"
+else
+    echo -e "${RED}✗${NC}"
+    echo -e "    ${RED}Error: Docker Compose not found${NC}"
+    echo -e "    Install Docker Desktop or docker-compose-plugin"
+    PREREQ_FAILED="true"
+fi
+
+# Check 3: Port 3001 availability
+echo -n "  Port 3001 (Gitea)........ "
+if lsof -Pi :3001 -sTCP:LISTEN -t > /dev/null 2>&1; then
+    # Port is in use - check if it's our container
+    if docker ps --filter "name=atomicqms" --filter "status=running" --format "{{.Names}}" | grep -q "atomicqms"; then
+        echo -e "${YELLOW}⚠ (already in use by AtomicQMS)${NC}"
+    else
+        echo -e "${RED}✗${NC}"
+        echo -e "    ${RED}Error: Port 3001 is already in use by another process${NC}"
+        echo -e "    ${YELLOW}Find the process: lsof -i :3001${NC}"
+        PREREQ_FAILED="true"
+    fi
+else
+    echo -e "${GREEN}✓${NC}"
+fi
+
+# Check 4: Port 222 availability (SSH)
+echo -n "  Port 222 (Git SSH)....... "
+if lsof -Pi :222 -sTCP:LISTEN -t > /dev/null 2>&1; then
+    # Port is in use - check if it's our container
+    if docker ps --filter "name=atomicqms" --filter "status=running" --format "{{.Names}}" | grep -q "atomicqms"; then
+        echo -e "${YELLOW}⚠ (already in use by AtomicQMS)${NC}"
+    else
+        echo -e "${RED}✗${NC}"
+        echo -e "    ${RED}Error: Port 222 is already in use by another process${NC}"
+        echo -e "    ${YELLOW}Find the process: lsof -i :222${NC}"
+        PREREQ_FAILED="true"
+    fi
+else
+    echo -e "${GREEN}✓${NC}"
+fi
+
+# Check 5: Disk space (need at least 2GB free)
+echo -n "  Disk space (min 2GB)..... "
+if command -v df > /dev/null 2>&1; then
+    # Get available space in KB, works on both macOS and Linux
+    AVAILABLE_KB=$(df -k . | tail -1 | awk '{print $4}')
+    AVAILABLE_GB=$((AVAILABLE_KB / 1024 / 1024))
+
+    if [ "$AVAILABLE_GB" -ge 2 ]; then
+        echo -e "${GREEN}✓ (${AVAILABLE_GB}GB available)${NC}"
+    else
+        echo -e "${RED}✗${NC}"
+        echo -e "    ${RED}Error: Only ${AVAILABLE_GB}GB available (need at least 2GB)${NC}"
+        PREREQ_FAILED="true"
+    fi
+else
+    echo -e "${YELLOW}⚠ (unable to check)${NC}"
+fi
+
+# Check 6: Required files exist
+echo -n "  Configuration files...... "
+MISSING_FILES=""
+if [ ! -f "docker-compose.yml" ]; then
+    MISSING_FILES="$MISSING_FILES docker-compose.yml"
+fi
+if [ ! -f "gitea/gitea/conf/app.ini" ]; then
+    MISSING_FILES="$MISSING_FILES gitea/gitea/conf/app.ini"
+fi
+
+if [ -z "$MISSING_FILES" ]; then
+    echo -e "${GREEN}✓${NC}"
+else
+    echo -e "${RED}✗${NC}"
+    echo -e "    ${RED}Error: Missing required files:${MISSING_FILES}${NC}"
+    echo -e "    ${YELLOW}Are you in the correct directory?${NC}"
+    PREREQ_FAILED="true"
+fi
+
+# Check 7: AI credentials (only for standard/full mode)
+# For interactive mode, we'll check this later after user selects mode
+if [ "$NEEDS_AI_CREDENTIALS" == "true" ]; then
+    echo -n "  Claude AI credentials.... "
+    HAS_OAUTH_TOKEN="false"
+    HAS_API_KEY="false"
+
+    # Check environment variables
+    if [ -n "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
+        HAS_OAUTH_TOKEN="true"
+    fi
+    if [ -n "${ANTHROPIC_API_KEY}" ]; then
+        HAS_API_KEY="true"
+    fi
+
+    # Check .env file
+    if [ -f ".env" ]; then
+        if grep -q "^CLAUDE_CODE_OAUTH_TOKEN=" .env && [ -n "$(grep "^CLAUDE_CODE_OAUTH_TOKEN=" .env | cut -d'=' -f2-)" ]; then
+            HAS_OAUTH_TOKEN="true"
+        fi
+        if grep -q "^ANTHROPIC_API_KEY=" .env && [ -n "$(grep "^ANTHROPIC_API_KEY=" .env | cut -d'=' -f2-)" ]; then
+            HAS_API_KEY="true"
+        fi
+    fi
+
+    if [ "$HAS_OAUTH_TOKEN" == "true" ] || [ "$HAS_API_KEY" == "true" ]; then
+        echo -e "${GREEN}✓${NC}"
+    else
+        echo -e "${RED}✗${NC}"
+        echo -e "    ${RED}Error: No Claude AI credentials found${NC}"
+        echo -e "    ${YELLOW}Full setup requires either:${NC}"
+        echo -e "    ${YELLOW}  • CLAUDE_CODE_OAUTH_TOKEN (from https://claude.ai/code)${NC}"
+        echo -e "    ${YELLOW}  • ANTHROPIC_API_KEY (from https://console.anthropic.com)${NC}"
+        echo -e "    ${YELLOW}Set via environment variable or add to .env file${NC}"
+        PREREQ_FAILED="true"
+    fi
+fi
+
+# Check 8: curl available (needed for API calls)
+echo -n "  curl utility............. "
+if command -v curl > /dev/null 2>&1; then
+    echo -e "${GREEN}✓${NC}"
+else
+    echo -e "${RED}✗${NC}"
+    echo -e "    ${RED}Error: curl command not found${NC}"
+    echo -e "    ${YELLOW}Install curl to continue${NC}"
+    PREREQ_FAILED="true"
+fi
+
+# Summary
+echo ""
+if [ "$PREREQ_FAILED" == "true" ]; then
+    echo -e "${RED}========================================${NC}"
+    echo -e "${RED}  Prerequisite Check Failed${NC}"
+    echo -e "${RED}========================================${NC}\n"
+    echo -e "${YELLOW}Please fix the errors above and try again.${NC}\n"
     exit 1
+else
+    echo -e "${GREEN}✓ All prerequisites met${NC}\n"
 fi
 
 # Check for existing installation
@@ -134,6 +294,52 @@ if [ "$SETUP_MODE" == "interactive" ]; then
             exit 1
             ;;
     esac
+
+    # For standard/full mode, verify AI credentials
+    if [ "$SETUP_MODE" == "standard" ] || [ "$SETUP_MODE" == "full" ]; then
+        echo ""
+        echo -e "${BLUE}Checking AI credentials...${NC}"
+
+        HAS_OAUTH_TOKEN="false"
+        HAS_API_KEY="false"
+
+        # Check environment variables
+        if [ -n "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
+            HAS_OAUTH_TOKEN="true"
+        fi
+        if [ -n "${ANTHROPIC_API_KEY}" ]; then
+            HAS_API_KEY="true"
+        fi
+
+        # Check .env file
+        if [ -f ".env" ]; then
+            if grep -q "^CLAUDE_CODE_OAUTH_TOKEN=" .env && [ -n "$(grep "^CLAUDE_CODE_OAUTH_TOKEN=" .env | cut -d'=' -f2-)" ]; then
+                HAS_OAUTH_TOKEN="true"
+            fi
+            if grep -q "^ANTHROPIC_API_KEY=" .env && [ -n "$(grep "^ANTHROPIC_API_KEY=" .env | cut -d'=' -f2-)" ]; then
+                HAS_API_KEY="true"
+            fi
+        fi
+
+        if [ "$HAS_OAUTH_TOKEN" == "false" ] && [ "$HAS_API_KEY" == "false" ]; then
+            echo -e "${RED}✗ No Claude AI credentials found${NC}\n"
+            echo -e "${YELLOW}${SETUP_MODE^} mode requires AI credentials. You have two options:${NC}\n"
+            echo -e "${CYAN}Option 1: Claude Code OAuth Token (Recommended)${NC}"
+            echo "  • Get from: https://claude.ai/code"
+            echo "  • Requires: Claude Max subscription"
+            echo "  • Set via: export CLAUDE_CODE_OAUTH_TOKEN='sk-ant-oat01-...'"
+            echo ""
+            echo -e "${CYAN}Option 2: Anthropic API Key${NC}"
+            echo "  • Get from: https://console.anthropic.com"
+            echo "  • Requires: Pay-per-use API account"
+            echo "  • Set via: export ANTHROPIC_API_KEY='sk-ant-api03-...'"
+            echo ""
+            echo -e "${YELLOW}After setting credentials, run this script again.${NC}\n"
+            exit 1
+        else
+            echo -e "  ${GREEN}✓ AI credentials found${NC}"
+        fi
+    fi
 fi
 
 echo -e "\n${BLUE}Setup Mode: ${SETUP_MODE}${NC}\n"

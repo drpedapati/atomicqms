@@ -10,6 +10,13 @@ AtomicQMS is a containerized, self-hosted Quality Management System designed for
 
 ### Option 1: Automated Setup (Recommended)
 
+The setup script automatically checks all prerequisites before starting:
+- Docker availability and status
+- Port availability (3001, 222)
+- Disk space (minimum 2GB)
+- AI credentials (for standard/full setup)
+- Required configuration files
+
 ```bash
 # One-command setup with guided prompts
 ./setup-all.sh
@@ -18,6 +25,8 @@ AtomicQMS is a containerized, self-hosted Quality Management System designed for
 ./setup-all.sh --minimal    # Just server (no AI)
 ./setup-all.sh --full       # Everything (server + AI + organization)
 ```
+
+If prerequisites are missing, you'll get clear instructions to fix them before the setup begins.
 
 ### Option 2: Manual Setup
 

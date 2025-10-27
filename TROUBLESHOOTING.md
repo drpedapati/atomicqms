@@ -15,6 +15,73 @@ This guide covers common issues and their solutions.
 
 ## Setup Issues
 
+### Prerequisite Check Failed
+
+**Problem**: Setup script reports missing prerequisites before starting.
+
+**Solution**: The setup script now performs comprehensive prerequisite checking before any work begins. Review the checklist output:
+
+```bash
+./setup-all.sh --full
+
+Checking Prerequisites...
+
+  Docker daemon............ ✓
+  Docker Compose........... ✓
+  Port 3001 (Gitea)........ ✓
+  Port 222 (Git SSH)....... ✓
+  Disk space (min 2GB)..... ✓ (384GB available)
+  Configuration files...... ✓
+  Claude AI credentials.... ✗  # ← This is the problem
+  curl utility............. ✓
+```
+
+**Common prerequisite failures**:
+
+1. **Claude AI credentials missing** (for standard/full mode)
+   ```bash
+   # Option 1: Set as environment variable
+   export CLAUDE_CODE_OAUTH_TOKEN='sk-ant-oat01-...'
+
+   # Option 2: Add to .env file
+   echo "CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-..." > .env
+
+   # Then run setup again
+   ./setup-all.sh --full
+   ```
+
+2. **Port already in use** (by non-AtomicQMS process)
+   ```bash
+   # Find what's using the port
+   lsof -i :3001
+
+   # Kill the process or change AtomicQMS port in docker-compose.yml
+   ```
+
+3. **Docker not running**
+   ```bash
+   # Start Docker Desktop (macOS/Windows)
+   # Or start Docker service (Linux):
+   sudo systemctl start docker
+   ```
+
+4. **Insufficient disk space** (need 2GB minimum)
+   ```bash
+   # Check available space
+   df -h .
+
+   # Free up space by removing unused Docker images/volumes
+   docker system prune -a --volumes
+   ```
+
+5. **Missing configuration files**
+   ```bash
+   # Ensure you're in the correct directory
+   ls -la docker-compose.yml gitea/gitea/conf/app.ini
+
+   # If missing, you may have cloned incorrectly
+   ```
+
 ### "Cannot connect to Docker daemon"
 
 **Problem**: Docker is not running or not accessible.
