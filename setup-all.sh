@@ -94,9 +94,15 @@ if docker compose ps | grep -q "Up"; then
 
                 echo -e "\n${BLUE}Performing clean installation...${NC}"
                 docker compose down --volumes
-                rm -rf gitea/git gitea/gitea gitea/ssh runner-data
+
+                # Remove data but preserve configuration
+                rm -rf gitea/git gitea/ssh runner-data
+                rm -f gitea/gitea/gitea.db gitea/gitea/*.log
+                rm -rf gitea/gitea/indexers gitea/gitea/sessions gitea/gitea/queues
                 rm -f .env
-                echo -e "${GREEN}✓ Cleaned up existing installation${NC}\n"
+
+                echo -e "${GREEN}✓ Cleaned up existing installation${NC}"
+                echo -e "${CYAN}  Preserved: gitea/gitea/conf/app.ini${NC}\n"
                 ;;
             3)
                 echo -e "${YELLOW}Setup cancelled${NC}"
