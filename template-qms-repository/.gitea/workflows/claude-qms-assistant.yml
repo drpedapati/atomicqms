@@ -31,13 +31,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Export runner credentials
+        shell: bash
+        run: |
+          # Promote runner environment variables into workflow context
+          # This allows ${{ env.* }} expressions to access credentials from runner-data/config.yaml
+          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$GITHUB_ENV"
+          fi
+
       - name: Run AtomicQMS AI Assistant
         uses: ./actions/claude-code-gitea-action
-        env:
-          # Pass runner environment variables to the action
-          # These come from runner-data/config.yaml envs section
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ env.CLAUDE_CODE_OAUTH_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
         with:
           # Trigger configuration
           trigger_phrase: '@qms-assistant'
@@ -50,9 +57,9 @@ jobs:
 
           # Authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Credentials come from env vars passed from runner
-          claude_code_oauth_token: ${{ env.CLAUDE_CODE_OAUTH_TOKEN }}
-          anthropic_api_key: ${{ env.ANTHROPIC_API_KEY }}
+          # Try repository secrets first, fall back to runner environment variables
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN || env.CLAUDE_CODE_OAUTH_TOKEN }}
 
           # Git configuration
           claude_git_name: 'AtomicQMS Assistant'
