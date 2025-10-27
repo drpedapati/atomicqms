@@ -31,25 +31,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Export runner credentials to workflow env
-        shell: bash
-        run: |
-          # Promote runner environment variables into workflow context
-          if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
-            echo "CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN" >> "$GITHUB_ENV"
-          fi
-          if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
-            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$GITHUB_ENV"
-          fi
-
       - name: Run AtomicQMS AI Assistant
         uses: ./actions/claude-code-gitea-action
         env:
-          # Credentials: Runner env vars are already available in container
-          # Export step above makes them available to ${{ env.* }} expressions
-          # But action reads from process.env directly, so just pass them through
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ env.CLAUDE_CODE_OAUTH_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
           # Use host.docker.internal to access Gitea from job containers
           GITEA_SERVER_URL: 'http://host.docker.internal:3001'
         with:
@@ -64,7 +48,9 @@ jobs:
 
           # Authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Don't pass credentials via inputs - use env vars above
+          # Organization-level secrets are automatically available
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
           # Git configuration
           claude_git_name: 'AtomicQMS Assistant'
