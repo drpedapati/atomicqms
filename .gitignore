@@ -19,6 +19,7 @@ gitea/gitea/conf/*
 !gitea/gitea/public/assets/img/
 !gitea/gitea/public/assets/img/logo.svg
 !gitea/gitea/public/assets/img/logo-full.svg
+!gitea/gitea/public/assets/img/favicon.svg
 
 # Docker volumes
 *.log

@@ -11,8 +11,8 @@ AtomicQMS is a Docker-based deployment of Gitea - a self-hosted Git service (sim
 - **Platform**: Docker Compose
 - **Git Service**: Gitea (latest version)
 - **Database**: SQLite3 (file-based at `/data/gitea/gitea.db`)
-- **Configuration**: Custom app.ini mounted from `./custom/conf/app.ini`
-- **Data Persistence**: Volumes mounted to `./gitea` and `./custom`
+- **Configuration**: Pre-seeded app.ini at `./gitea/gitea/conf/app.ini`
+- **Data Persistence**: Volume mounted at `./gitea:/data`
 
 ## Service Access
 
@@ -92,28 +92,30 @@ The `INSTALL_LOCK = true` setting prevents the initial configuration wizard from
 - **SSH Keys**: Auto-generated in `./gitea/ssh/` (gitignored)
 - **LFS Objects**: Stored in `./gitea/git/lfs/` (gitignored)
 - **Runtime Data**: Logs, sessions, uploads in `./gitea/gitea/` (gitignored)
-- **Custom Branding**: Logos in `./gitea/public/assets/img/` (gitignored, structure tracked)
+- **Custom Branding**: Logos in `./gitea/gitea/public/assets/img/` (tracked in Git - essential to AtomicQMS identity)
 
 ## Custom Branding
 
-AtomicQMS supports custom logo branding to replace Gitea's default teacup icon:
+AtomicQMS includes pre-installed custom logo branding (atomic structure design) that replaces Gitea's default teacup icon.
 
 **File Locations:**
-- `gitea/public/assets/img/logo.svg` - Mini logo (header, navigation, site icon)
-- `gitea/public/assets/img/logo-full.svg` - Full logo (optional, for larger areas)
+- `gitea/gitea/public/assets/img/logo.svg` - Mini logo (header, navigation)
+- `gitea/gitea/public/assets/img/logo-full.svg` - Full logo (larger areas)
+- `gitea/gitea/public/assets/img/favicon.svg` - Site icon (browser tab)
 
 **How It Works:**
-- `GITEA_CUSTOM` environment variable defaults to `/data/gitea`
-- Custom assets in `/data/public/` override Gitea's embedded assets
-- The `./gitea:/data` volume mount makes `gitea/public/` accessible as `/data/public/`
-- SVG format required for `logo.svg`, PNG variants optional
+- Docker mounts: `./gitea:/data`
+- `GITEA_CUSTOM` defaults to `/data/gitea`
+- Custom assets in `<GITEA_CUSTOM>/public/` = `/data/gitea/public/` override Gitea's embedded assets
+- Host path `gitea/gitea/public/` maps to container path `/data/gitea/public/`
+- SVG format required
 
 **To Update Logos:**
-1. Replace `gitea/public/assets/img/logo.svg` with your custom logo
+1. Replace files in `gitea/gitea/public/assets/img/` (NOT `gitea/public/`)
 2. Run `docker compose restart`
-3. Hard refresh browser (Cmd+Shift+R)
+3. Hard refresh browser (Cmd+Shift+R or Ctrl+Shift+R)
 
-**Note:** Logo files themselves are gitignored. Only the directory structure and README are tracked in Git.
+**Note:** AtomicQMS logo files ARE tracked in Git as they are essential to the project's brand identity.
 
 ## Network Configuration
 
