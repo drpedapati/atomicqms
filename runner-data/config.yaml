@@ -12,6 +12,11 @@ runner:
   # Timeout for a single job
   timeout: 3h
 
+  # Environment variables passed from runner to job containers
+  # These make Claude Code credentials available to all workflows
+  envs:
+    CLAUDE_CODE_OAUTH_TOKEN: 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
+
 container:
   # Network configuration for job containers
   # Job containers run in isolation
@@ -23,9 +28,6 @@ container:
 
   # Container options
   options: ""
-
-  # Mount docker socket for Docker-in-Docker workflows
-  # workdir_parent: ""
 
 host:
   # Use the docker socket from the host

@@ -4,3 +4,4 @@
 # Runner cache and artifacts
 .runner_cache/
 actions/
+.runner-env
