@@ -14,9 +14,8 @@
 #   (default) : Interactive - asks what you want to set up
 #
 # Admin Password:
-#   - Press Enter at password prompt to use default: 'atomicqms123'
-#   - Or set: export ATOMICQMS_ADMIN_PASSWORD="your-password"
-#   - Or enter a custom password when prompted
+#   Default: atomicqms123 (automatically set, change after first login)
+#   Override: export ATOMICQMS_ADMIN_PASSWORD="your-password"
 #
 # On repeated runs, the script will detect existing installations and
 # offer to either continue or perform a clean install.
@@ -149,23 +148,10 @@ echo -e "\n${BLUE}[Step 2/4] Checking admin user...${NC}"
 if docker exec atomicqms gitea admin user list 2>/dev/null | grep -q admin; then
     echo -e "${GREEN}✓ Admin user already exists${NC}"
 else
-    echo -e "${YELLOW}Admin user not found. Creating admin user...${NC}"
+    echo -e "${YELLOW}Creating admin user...${NC}"
 
-    # Check for ATOMICQMS_ADMIN_PASSWORD environment variable
-    if [ -n "$ATOMICQMS_ADMIN_PASSWORD" ]; then
-        ADMIN_PASSWORD="$ATOMICQMS_ADMIN_PASSWORD"
-        echo -e "${CYAN}Using password from ATOMICQMS_ADMIN_PASSWORD environment variable${NC}"
-    else
-        echo "Please enter admin password (or press Enter for default 'atomicqms123'):"
-        read -s ADMIN_PASSWORD
-        echo
-
-        # Use default if empty
-        if [ -z "$ADMIN_PASSWORD" ]; then
-            ADMIN_PASSWORD="atomicqms123"
-            echo -e "${CYAN}Using default password: atomicqms123${NC}"
-        fi
-    fi
+    # Use default password (can be overridden with environment variable)
+    ADMIN_PASSWORD="${ATOMICQMS_ADMIN_PASSWORD:-atomicqms123}"
 
     docker exec -u git atomicqms gitea admin user create \
         --username admin \
@@ -174,10 +160,10 @@ else
         --admin \
         --must-change-password=false
 
-    echo -e "${GREEN}✓ Admin user created (username: admin)${NC}"
-    if [ "$ADMIN_PASSWORD" == "atomicqms123" ]; then
-        echo -e "${YELLOW}⚠ Using default password. Change it after first login!${NC}"
-    fi
+    echo -e "${GREEN}✓ Admin user created${NC}"
+    echo -e "${CYAN}  Username: admin${NC}"
+    echo -e "${CYAN}  Password: atomicqms123${NC}"
+    echo -e "${YELLOW}  ⚠ Change password after first login!${NC}"
 fi
 
 # Step 3: AI Assistant Setup (if not minimal)
