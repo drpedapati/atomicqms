@@ -12,9 +12,13 @@ gitea/gitea/conf/*
 !gitea/public/assets/
 !gitea/public/assets/img/
 !gitea/public/assets/img/.gitkeep
-# Allow AtomicQMS branding logos (essential to project identity)
-!gitea/public/assets/img/logo.svg
-!gitea/public/assets/img/logo-full.svg
+
+# Allow AtomicQMS branding logos in GITEA_CUSTOM path (essential to project identity)
+!gitea/gitea/public/
+!gitea/gitea/public/assets/
+!gitea/gitea/public/assets/img/
+!gitea/gitea/public/assets/img/logo.svg
+!gitea/gitea/public/assets/img/logo-full.svg
 
 # Docker volumes
 *.log
