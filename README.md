@@ -8,6 +8,19 @@ AtomicQMS is a containerized, self-hosted Quality Management System designed for
 
 ## Quick Start
 
+### Option 1: Automated Setup (Recommended)
+
+```bash
+# One-command setup with guided prompts
+./setup-all.sh
+
+# Or choose your setup level:
+./setup-all.sh --minimal    # Just server (no AI)
+./setup-all.sh --full       # Everything (server + AI + organization)
+```
+
+### Option 2: Manual Setup
+
 ```bash
 # Start AtomicQMS
 docker compose up -d
@@ -22,6 +35,15 @@ docker exec -u git atomicqms gitea admin user create \
 # Access web interface
 open http://localhost:3001
 ```
+
+### Which Setup Should I Choose?
+
+| I want... | Run this | Time |
+|-----------|----------|------|
+| Just try AtomicQMS | `./setup-all.sh --minimal` | 2 min |
+| AtomicQMS + AI assistant | `./setup-all.sh` → choose "Standard" | 5 min |
+| Full team setup (recommended for labs) | `./setup-all.sh --full` | 8 min |
+| Manual control of every step | See [SETUP.md](./SETUP.md) | 15-30 min |
 
 ## Architecture & Philosophy
 

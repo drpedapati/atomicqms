@@ -169,9 +169,62 @@ AtomicQMS includes AI-powered assistance for QMS workflows via the Claude API in
 - **Change Assessment**: Impact analysis for process and equipment changes
 - **Compliance Checking**: FDA 21 CFR Part 11, ISO 13485, GxP compliance verification
 
+### Credential Management Architecture
+
+**CRITICAL**: Understanding credential precedence is essential for troubleshooting.
+
+#### Credential Sources (Highest to Lowest Priority)
+
+1. **Repository Secrets** (highest priority)
+   - Set in: Gitea UI → Repository → Settings → Secrets
+   - Scope: Single repository only
+   - Use case: Override global/org credentials for specific repo
+
+2. **Organization Secrets** (recommended for teams)
+   - Set via: `./setup-organization.sh` or Gitea API
+   - Scope: All repositories in the organization
+   - Use case: Zero-config setup for lab/team environments
+   - Location: `atomicqms-lab` organization → Secrets
+
+3. **Runner Environment Variables** (global fallback)
+   - Set in: `.env` file → docker-compose.yml → runner container
+   - Scope: ALL repositories across entire Gitea instance
+   - Use case: Single-user setups, testing
+
+#### What Actually Works
+
+✅ **Organization Secrets** (Recommended)
+```yaml
+# In workflow file:
+claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+**How it works**: Gitea injects org secrets into `${{ secrets.* }}` context before workflow runs.
+
+✅ **Docker Compose Environment** (Global)
+```yaml
+# In docker-compose.yml:
+runner:
+  environment:
+    - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
+```
+**How it works**: Runner container environment → passed to job containers → available to action.
+
+❌ **runner.envs in config.yaml** (DOES NOT WORK)
+```yaml
+# In runner-data/config.yaml:
+envs:
+  CLAUDE_CODE_OAUTH_TOKEN: sk-ant-...  # ← This doesn't work!
+```
+**Why it fails**: `runner.envs` only sets variables in runner container, NOT in job containers. Gitea/act expressions evaluate before container starts, so `${{ env.* }}` is always empty.
+
 ### Quick Setup
 
 ```bash
+# Recommended: Organization-based setup (for teams/labs)
+./setup-all.sh --full
+
+# Alternative: Manual setup
 # 1. Get runner token from Gitea
 # Site Admin → Actions → Runners → Create new Runner
 
@@ -179,13 +232,31 @@ AtomicQMS includes AI-powered assistance for QMS workflows via the Claude API in
 chmod +x setup-claude-assistant.sh
 ./setup-claude-assistant.sh
 
-# 3. Configure repository secrets (via Gitea UI)
-# Settings → Secrets → Add:
-#   ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN
-#   QMS_SERVER_URL
+# 3. Configure credentials (choose ONE method):
+#    Method A: Organization secrets (recommended)
+./setup-organization.sh
+
+#    Method B: Repository secrets (per-repo override)
+#    Gitea UI: Settings → Secrets → Add CLAUDE_CODE_OAUTH_TOKEN
+
+#    Method C: Global .env (single-user)
+#    Add to .env: CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...
 
 # 4. Test in PR/Issue
 # Comment: @qms-assistant Hello!
+```
+
+### Debugging Credentials
+
+```bash
+# Check .env file
+grep CLAUDE_CODE_OAUTH_TOKEN .env
+
+# Check organization secrets
+./verify-org-secrets.sh
+
+# Check repository secrets
+# Gitea UI: Repo → Settings → Secrets
 ```
 
 ### Workflow Files

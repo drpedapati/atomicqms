@@ -173,20 +173,14 @@ runs:
         GITEA_API_URL: ${{ env.GITHUB_SERVER_URL }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
 
-    - name: Install Claude
+    - name: Install Claude Code
       if: steps.prepare.outputs.contains_trigger == 'true'
       shell: bash
       run: |
         # Install Claude Code if no custom executable is provided
         if [ -z "${{ inputs.path_to_claude_code_executable }}" ]; then
-          echo "Installing Claude Code..."
-          # Use non-interactive mode and add timeout
-          export DEBIAN_FRONTEND=noninteractive
-          timeout 120 bash -c 'curl -fsSL https://claude.ai/install.sh | bash -s latest' || {
-            echo "Installation failed or timed out, retrying with verbose output..."
-            timeout 120 bash -c 'curl -fsSL -v https://claude.ai/install.sh | bash -s latest'
-          }
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "Installing Claude Code via bun..."
+          bun install -g @anthropic-ai/claude-code@latest
         else
           echo "Using custom Claude Code executable: ${{ inputs.path_to_claude_code_executable }}"
           # Add the directory containing the custom executable to PATH
