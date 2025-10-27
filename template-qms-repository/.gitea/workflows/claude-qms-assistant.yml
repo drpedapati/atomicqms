@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run AtomicQMS AI Assistant
-        uses: markwylde/claude-code-gitea-action@main
+        uses: ./actions/claude-code-gitea-action
         with:
           # Trigger configuration
           trigger_phrase: '@qms-assistant'
